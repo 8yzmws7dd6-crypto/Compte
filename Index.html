@@ -1,1 +1,319 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Compte" />
+  <title>Compte</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: #090909;
+      color: #f0f0f0;
+      min-height: 100vh;
+      max-width: 430px;
+      margin: 0 auto;
+      padding-bottom: 60px;
+    }
+    input[type=number] { -moz-appearance: textfield; }
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+    #flash {
+      position: fixed; top: 52px; left: 50%; transform: translateX(-50%);
+      background: #4ade80; color: #000; padding: 8px 22px;
+      border-radius: 30px; font-size: 12px; font-weight: 700;
+      letter-spacing: 1px; z-index: 999; display: none;
+    }
+    .statusbar { height: 44px; display: flex; align-items: center; justify-content: center; }
+    .statusbar span { font-size: 11px; color: #252525; letter-spacing: 4px; text-transform: uppercase; }
+    .hero { padding: 0 22px 24px; }
+    .nav-month { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .nav-btn {
+      background: #141414; border: none; color: #555;
+      width: 38px; height: 38px; border-radius: 12px;
+      font-size: 20px; cursor: pointer; display: flex;
+      align-items: center; justify-content: center; font-family: inherit;
+    }
+    .month-label { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: #444; }
+    .solde-bloc { text-align: center; margin-bottom: 6px; }
+    .solde-sub { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #2e2e2e; margin-bottom: 10px; }
+    .solde-big { font-size: 58px; font-weight: 800; letter-spacing: -3px; line-height: 1; }
+    .solde-status { margin-top: 10px; font-size: 13px; font-weight: 500; min-height: 18px; }
+    .progress-wrap { margin-top: 20px; }
+    .progress-labels { display: flex; justify-content: space-between; font-size: 11px; color: #2e2e2e; margin-bottom: 6px; }
+    .progress-bar-bg { background: #141414; border-radius: 10px; height: 6px; overflow: hidden; }
+    .progress-bar { height: 100%; border-radius: 10px; transition: width .5s; }
+    .section { padding: 0 14px; margin-bottom: 10px; }
+    .section-title { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #222; margin-bottom: 8px; padding-left: 4px; }
+    .params-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .param-card { background: #0f0f0f; border-radius: 18px; padding: 15px; border: 1px solid #1a1a1a; }
+    .param-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #383838; margin-bottom: 5px; }
+    .param-value { font-size: 22px; font-weight: 700; margin-bottom: 12px; color: #252525; }
+    .param-input {
+      width: 100%; background: #181818; border: 1px solid #222;
+      border-radius: 10px; padding: 8px 10px; color: #f0f0f0;
+      font-size: 13px; font-family: inherit; outline: none; margin-bottom: 7px;
+    }
+    .param-btn { width: 100%; border: none; border-radius: 10px; padding: 8px; font-weight: 700; font-size: 12px; cursor: pointer; font-family: inherit; }
+    .btn-white { background: #f0f0f0; color: #000; }
+    .btn-green { background: #4ade80; color: #000; }
+    .budget-card {
+      background: #0f0f0f; border-radius: 18px; padding: 15px 18px;
+      border: 1px solid #1a1a1a; display: flex; justify-content: space-between; align-items: center;
+    }
+    .budget-card-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #333; margin-bottom: 3px; }
+    .budget-card-val { font-size: 26px; font-weight: 700; }
+    .budget-card-right { text-align: right; }
+    .budget-card-sub { font-size: 17px; font-weight: 600; color: #444; }
+    .week-card { background: #0e0e0e; border: 1px solid #171717; border-radius: 18px; padding: 15px 16px; margin-bottom: 10px; }
+    .week-card.current { background: #0b160b; border-color: #4ade8055; }
+    .week-card.future { opacity: 0.65; }
+    .week-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .week-dot { width: 6px; height: 6px; border-radius: 50%; background: #1e1e1e; flex-shrink: 0; margin-top: 2px; }
+    .week-name-wrap { display: flex; align-items: center; gap: 7px; margin-bottom: 3px; }
+    .week-name { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #333; font-weight: 600; }
+    .week-dates { font-size: 12px; color: #2a2a2a; padding-left: 13px; }
+    .week-amount { font-size: 22px; font-weight: 700; color: #252525; }
+    .week-amount-sub { font-size: 11px; color: #272727; margin-top: 1px; }
+    .week-mini-bar-bg { background: #141414; border-radius: 6px; height: 4px; overflow: hidden; margin-bottom: 12px; }
+    .week-mini-bar { height: 100%; border-radius: 6px; }
+    .week-input-row { display: flex; gap: 8px; }
+    .week-input {
+      flex: 1; background: #141414; border: 1px solid #1e1e1e;
+      border-radius: 10px; padding: 10px 12px; color: #f0f0f0;
+      font-size: 14px; font-family: inherit; outline: none;
+    }
+    .week-input.current { border-color: #4ade8044; }
+    .week-ok-btn {
+      background: #1a1a1a; color: #555; border: none;
+      border-radius: 10px; padding: 0 18px;
+      font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit;
+    }
+    .week-ok-btn.current { background: #4ade80; color: #000; }
+    .history-card { background: #0e0e0e; border-radius: 18px; overflow: hidden; border: 1px solid #171717; }
+    .history-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 18px; border-bottom: 1px solid #131313; }
+    .history-row:last-child { border-bottom: none; }
+    .history-month { font-size: 13px; color: #484848; text-transform: capitalize; }
+    .history-obj { font-size: 11px; color: #252525; margin-top: 2px; }
+    .history-right { display: flex; align-items: center; gap: 8px; }
+    .history-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .history-amount { font-size: 15px; font-weight: 700; }
+  </style>
+</head>
+<body>
+<div id="flash"></div>
+<div class="statusbar"><span>Compte</span></div>
+<div class="hero">
+  <div class="nav-month">
+    <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
+    <span class="month-label" id="month-label"></span>
+    <button class="nav-btn" onclick="changeMonth(1)">›</button>
+  </div>
+  <div class="solde-bloc">
+    <div class="solde-sub">solde estimé fin de mois</div>
+    <div class="solde-big" id="solde-big">—</div>
+    <div class="solde-status" id="solde-status"></div>
+  </div>
+  <div class="progress-wrap" id="progress-wrap" style="display:none">
+    <div class="progress-labels">
+      <span id="prog-left"></span>
+      <span id="prog-right"></span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+  </div>
+</div>
+<div class="section">
+  <div class="section-title">Paramètres</div>
+  <div class="params-grid">
+    <div class="param-card">
+      <div class="param-label">Départ</div>
+      <div class="param-value" id="val-debut">—</div>
+      <input class="param-input" type="number" id="input-debut" placeholder="Montant €" />
+      <button class="param-btn btn-white" onclick="saveDebut()">OK</button>
+    </div>
+    <div class="param-card" id="card-objectif">
+      <div class="param-label" id="label-objectif">Objectif</div>
+      <div class="param-value" id="val-objectif">—</div>
+      <input class="param-input" type="number" id="input-objectif" placeholder="Montant €" />
+      <button class="param-btn btn-green" onclick="saveObjectif()">OK</button>
+    </div>
+  </div>
+  <div class="budget-card" id="budget-card" style="display:none">
+    <div>
+      <div class="budget-card-label">Budget / sem. pleine</div>
+      <div class="budget-card-val" id="budget-sem-val">—</div>
+    </div>
+    <div class="budget-card-right">
+      <div class="budget-card-label">Reste à dépenser</div>
+      <div class="budget-card-sub" id="budget-reste">—</div>
+    </div>
+  </div>
+</div>
+<div class="section" id="semaines-section" style="display:none">
+  <div class="section-title">Semaines</div>
+  <div id="semaines-list"></div>
+</div>
+<div class="section" id="history-section" style="display:none">
+  <div class="section-title">Historique</div>
+  <div class="history-card" id="history-list"></div>
+</div>
+<script>
+const GREEN='#4ade80',ORANGE='#fb923c',KEY='compte_data_v1';
+let yr=new Date().getFullYear(),mo=new Date().getMonth();
+function loadData(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return{}}}
+function saveData(d){localStorage.setItem(KEY,JSON.stringify(d))}
+function fmt(n){return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n)}
+function monthName(y,m){return new Date(y,m,1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}
+const JOURS=['dim','lun','mar','mer','jeu','ven','sam'];
+function dowLabel(y,m,d){return JOURS[new Date(y,m,d).getDay()]}
+function getWeekRanges(y,m){
+  const total=new Date(y,m+1,0).getDate();
+  const firstDow=new Date(y,m,1).getDay();
+  const daysToSun=firstDow===0?0:7-firstDow;
+  const firstEnd=Math.min(1+daysToSun,total);
+  const ranges=[{start:1,end:firstEnd}];
+  let d=firstEnd+1;
+  while(d<=total){ranges.push({start:d,end:Math.min(d+6,total)});d+=7;}
+  return ranges;
+}
+function curWeekIdx(y,m){
+  const t=new Date();
+  if(t.getFullYear()!==y||t.getMonth()!==m)return -1;
+  const r=getWeekRanges(y,m);
+  return r.findIndex(r=>t.getDate()>=r.start&&t.getDate()<=r.end);
+}
+function showFlash(msg){
+  const el=document.getElementById('flash');
+  el.textContent=msg;el.style.display='block';
+  setTimeout(()=>el.style.display='none',1500);
+}
+function changeMonth(dir){
+  mo+=dir;
+  if(mo<0){mo=11;yr--;}
+  if(mo>11){mo=0;yr++;}
+  render();
+}
+function saveDebut(){
+  const v=parseFloat(document.getElementById('input-debut').value);
+  if(isNaN(v))return;
+  const data=loadData(),key=`${yr}-${mo}`;
+  const ranges=getWeekRanges(yr,mo);
+  data[key]={...(data[key]||{}),debut:v,semaines:Array(ranges.length).fill(null)};
+  saveData(data);document.getElementById('input-debut').value='';
+  showFlash('Départ enregistré ✓');render();
+}
+function saveObjectif(){
+  const v=parseFloat(document.getElementById('input-objectif').value);
+  if(isNaN(v))return;
+  const data=loadData(),key=`${yr}-${mo}`;
+  data[key]={...(data[key]||{}),objectif:v};
+  saveData(data);document.getElementById('input-objectif').value='';
+  showFlash('Objectif enregistré ✓');render();
+}
+function saveSem(i){
+  const v=parseFloat(document.getElementById(`sem-input-${i}`).value);
+  if(isNaN(v))return;
+  const data=loadData(),key=`${yr}-${mo}`;
+  const ranges=getWeekRanges(yr,mo);
+  const rec=data[key]||{};
+  const sems=rec.semaines?.length===ranges.length?[...rec.semaines]:Array(ranges.length).fill(null);
+  sems[i]=v;data[key]={...rec,semaines:sems};
+  saveData(data);document.getElementById(`sem-input-${i}`).value='';
+  showFlash(`Sem. ${i+1} enregistrée ✓`);render();
+}
+function render(){
+  const data=loadData(),key=`${yr}-${mo}`,rec=data[key]||{};
+  const debut=rec.debut??null,objectif=rec.objectif??null;
+  const ranges=getWeekRanges(yr,mo),nbW=ranges.length;
+  const semaines=rec.semaines?.length===nbW?rec.semaines:Array(nbW).fill(null);
+  const weekDays=ranges.map(r=>r.end-r.start+1),cw=curWeekIdx(yr,mo);
+  const depSaisie=semaines.reduce((s,v)=>s+(v??0),0);
+  const soldeCour=debut!==null?debut-depSaisie:null;
+  const joursRest=semaines.reduce((s,v,i)=>v===null?s+weekDays[i]:s,0);
+  const margeRest=soldeCour!==null&&objectif!==null?Math.max(0,soldeCour-objectif):null;
+  const budgetJour=margeRest!==null&&joursRest>0?margeRest/joursRest:null;
+  const budgetSems=weekDays.map((d,i)=>{
+    if(semaines[i]!==null)return semaines[i];
+    if(budgetJour!==null)return Math.floor(budgetJour*d);
+    return null;
+  });
+  const soldeEst=soldeCour!==null?soldeCour-budgetSems.reduce((s,v,i)=>semaines[i]===null?s+(v??0):s,0):null;
+  const marge=debut!==null&&objectif!==null?debut-objectif:null;
+  const pctDep=marge&&marge>0?Math.min(100,Math.round(depSaisie/marge*100)):0;
+  const onTrack=soldeCour!==null&&objectif!==null?soldeCour>=objectif:null;
+  const accent=onTrack===null?'#3a3a3a':onTrack?GREEN:ORANGE;
+  document.getElementById('month-label').textContent=monthName(yr,mo);
+  const soldeDisplay=soldeEst!==null?soldeEst:(soldeCour!==null?soldeCour:null);
+  const sel=document.getElementById('solde-big');
+  sel.textContent=soldeDisplay!==null?fmt(soldeDisplay):'—';sel.style.color=accent;
+  const stEl=document.getElementById('solde-status');
+  if(onTrack===true){stEl.textContent=`✓ Objectif atteint — ${fmt(objectif)}`;stEl.style.color=GREEN;}
+  else if(onTrack===false){stEl.textContent=`⚠ Manque ${fmt(objectif-soldeCour)} pour l'objectif`;stEl.style.color=ORANGE;}
+  else stEl.textContent='';
+  const pw=document.getElementById('progress-wrap');
+  if(marge!==null&&marge>0){
+    pw.style.display='block';
+    document.getElementById('prog-left').textContent=`Dépensé ${fmt(depSaisie)}`;
+    document.getElementById('prog-right').textContent=`Marge ${fmt(marge)}`;
+    const pb=document.getElementById('progress-bar');
+    pb.style.width=pctDep+'%';pb.style.background=pctDep>95?ORANGE:GREEN;
+  }else pw.style.display='none';
+  const vd=document.getElementById('val-debut');
+  vd.textContent=debut!==null?fmt(debut):'—';vd.style.color=debut!==null?'#f0f0f0':'#252525';
+  const vo=document.getElementById('val-objectif'),lo=document.getElementById('label-objectif'),co=document.getElementById('card-objectif');
+  vo.textContent=objectif!==null?fmt(objectif):'—';vo.style.color=objectif!==null?GREEN:'#252525';
+  lo.style.color=objectif!==null?GREEN:'#383838';co.style.borderColor=objectif!==null?GREEN+'44':'#1a1a1a';
+  const bc=document.getElementById('budget-card');
+  if(budgetJour!==null){
+    bc.style.display='flex';
+    document.getElementById('budget-sem-val').textContent=fmt(Math.floor(budgetJour*7));
+    document.getElementById('budget-reste').textContent=fmt(margeRest);
+  }else bc.style.display='none';
+  const secSem=document.getElementById('semaines-section');
+  if(debut!==null){
+    secSem.style.display='block';
+    const list=document.getElementById('semaines-list');list.innerHTML='';
+    ranges.forEach(({start,end},i)=>{
+      const isCur=cw===i,isPast=i<cw&&cw!==-1,isFut=i>cw&&cw!==-1;
+      const v=semaines[i],maxB=budgetSems[i],nj=weekDays[i];
+      const over=v!==null&&maxB!==null?v>maxB:false;
+      const dotCol=v!==null?(over?ORANGE:GREEN):(isCur?'#3a3a3a':'#1e1e1e');
+      const nameCol=isCur?GREEN:(isPast?'#383838':'#333');
+      const amtCol=v!==null?(over?ORANGE:GREEN):'#252525';
+      const amtTxt=v!==null?fmt(v):(maxB!==null?fmt(maxB):'—');
+      const subTxt=v!==null?(over?`+${fmt(v-maxB)} dépassé`:'sous budget'):'estimé';
+      const miniBar=v!==null&&maxB!==null?`<div class="week-mini-bar-bg"><div class="week-mini-bar" style="width:${Math.min(100,Math.round(v/maxB*100))}%;background:${over?ORANGE:GREEN}"></div></div>`:'';
+      const card=document.createElement('div');
+      card.className='week-card'+(isCur?' current':'')+(isFut?' future':'');
+      card.innerHTML=`<div class="week-header"><div><div class="week-name-wrap"><div class="week-dot" style="background:${dotCol}"></div><span class="week-name" style="color:${nameCol}">Semaine ${i+1}${isCur?' · en cours':isPast?' · passée':''}</span></div><div class="week-dates">${dowLabel(yr,mo,start)} ${start} → ${dowLabel(yr,mo,end)} ${end} · ${nj}j</div></div><div style="text-align:right"><div class="week-amount" style="color:${amtCol}">${amtTxt}</div><div class="week-amount-sub">${subTxt}</div></div></div>${miniBar}<div class="week-input-row"><input id="sem-input-${i}" type="number" class="week-input${isCur?' current':''}" placeholder="${v!==null?'Modifier…':'Saisir dépenses €'}" /><button class="week-ok-btn${isCur?' current':''}" onclick="saveSem(${i})">OK</button></div>`;
+      list.appendChild(card);
+      document.getElementById(`sem-input-${i}`).addEventListener('keydown',e=>{if(e.key==='Enter')saveSem(i);});
+    });
+  }else secSem.style.display='none';
+  const otherKeys=Object.keys(data).filter(k=>k!==key);
+  const secHist=document.getElementById('history-section');
+  if(otherKeys.length>0){
+    secHist.style.display='block';
+    const hl=document.getElementById('history-list');hl.innerHTML='';
+    otherKeys.sort((a,b)=>b.localeCompare(a)).slice(0,5).forEach((k,idx,arr)=>{
+      const[y,m]=k.split('-').map(Number),r=data[k];
+      const dep=(r.semaines||[]).reduce((s,v)=>s+(v??0),0);
+      const fin=r.debut!=null?r.debut-dep:null;
+      const hit=r.objectif!=null&&fin!=null?fin>=r.objectif:null;
+      const row=document.createElement('div');row.className='history-row';
+      row.innerHTML=`<div><div class="history-month">${new Date(y,m,1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}</div>${r.objectif!=null?`<div class="history-obj">obj. ${fmt(r.objectif)}</div>`:''}</div><div class="history-right">${hit!==null?`<div class="history-dot" style="background:${hit?GREEN:ORANGE}"></div>`:''} ${fin!=null?`<span class="history-amount" style="color:${hit===null?'#333':hit?GREEN:ORANGE}">${fmt(fin)}</span>`:''}</div>`;
+      hl.appendChild(row);
+    });
+  }else secHist.style.display='none';
+}
+render();
+</script>
+</body>
+</html>
 
