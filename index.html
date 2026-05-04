@@ -12,13 +12,15 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body { font-family: 'Outfit', sans-serif; background: #090909; color: #f0f0f0; min-height: 100vh; max-width: 430px; margin: 0 auto; padding-bottom: 60px; }
+    input { -webkit-text-fill-color: #ffffff !important; color: #ffffff !important; }
+    input::placeholder { -webkit-text-fill-color: #444 !important; color: #444 !important; }
     input[type=number] { -moz-appearance: textfield; }
     input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
     #flash { position: fixed; top: 52px; left: 50%; transform: translateX(-50%); background: #4ade80; color: #000; padding: 8px 22px; border-radius: 30px; font-size: 12px; font-weight: 700; letter-spacing: 1px; z-index: 999; display: none; white-space: nowrap; }
     #loading { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #090909; display: flex; align-items: center; justify-content: center; z-index: 9999; }
     #loading span { font-size: 12px; color: #333; letter-spacing: 4px; text-transform: uppercase; }
-    #confirm-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 9998; align-items: center; justify-content: center; }
-    #confirm-modal.show { display: flex; }
+    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 9998; align-items: center; justify-content: center; }
+    .modal.show { display: flex; }
     .modal-box { background: #111; border-radius: 20px; padding: 28px 24px; width: 300px; border: 1px solid #222; text-align: center; }
     .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
     .modal-sub { font-size: 13px; color: #555; margin-bottom: 24px; }
@@ -41,42 +43,58 @@
     .progress-bar { height: 100%; border-radius: 10px; transition: width .5s; }
     .section { padding: 0 14px; margin-bottom: 10px; }
     .section-title { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #222; margin-bottom: 8px; padding-left: 4px; }
+    .rentree-card { background: #0f0f0f; border-radius: 18px; padding: 15px; border: 1px solid #1a2a1a; margin-bottom: 10px; }
+    .rentree-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #2d5a2d; margin-bottom: 5px; }
+    .rentree-total { font-size: 18px; font-weight: 700; color: #4ade80; margin-bottom: 10px; }
+    .rentree-row { display: flex; gap: 8px; }
     .params-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
     .param-card { background: #0f0f0f; border-radius: 18px; padding: 15px; border: 1px solid #1a1a1a; }
     .param-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #383838; margin-bottom: 5px; }
     .param-value { font-size: 22px; font-weight: 700; margin-bottom: 12px; color: #252525; }
-    .param-input { width: 100%; background: #181818; border: 1px solid #222; border-radius: 10px; padding: 8px 10px; color: #ffffff; -webkit-text-fill-color: #ffffff; font-size: 13px; font-family: inherit; outline: none; margin-bottom: 7px; }
-    .param-btn { width: 100%; border: none; border-radius: 10px; padding: 8px; font-weight: 700; font-size: 12px; cursor: pointer; font-family: inherit; }
+    .base-input { background: #181818; border: 1px solid #2a2a2a; border-radius: 10px; padding: 9px 12px; font-size: 14px; font-family: inherit; outline: none; width: 100%; }
+    .param-btn { width: 100%; border: none; border-radius: 10px; padding: 9px; font-weight: 700; font-size: 12px; cursor: pointer; font-family: inherit; margin-top: 7px; }
     .btn-white { background: #f0f0f0; color: #000; }
     .btn-green { background: #4ade80; color: #000; }
-    .btn-red { background: #1a1a1a; color: #ef4444; border: 1px solid #2a1a1a; width: 100%; border-radius: 12px; padding: 12px; font-family: inherit; font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; margin-top: 4px; }
-    .budget-card { background: #0f0f0f; border-radius: 18px; padding: 15px 18px; border: 1px solid #1a1a1a; display: flex; justify-content: space-between; align-items: center; }
+    .btn-red-full { background: #1a1a1a; color: #ef4444; border: 1px solid #2a1a1a; width: 100%; border-radius: 12px; padding: 12px; font-family: inherit; font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; margin-top: 4px; }
+    .budget-card { background: #0f0f0f; border-radius: 18px; padding: 15px 18px; border: 1px solid #1a1a1a; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
     .budget-card-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #333; margin-bottom: 3px; }
     .budget-card-val { font-size: 26px; font-weight: 700; }
     .budget-card-right { text-align: right; }
     .budget-card-sub { font-size: 17px; font-weight: 600; color: #444; }
+    /* Semaines */
     .week-card { background: #0e0e0e; border: 1px solid #171717; border-radius: 18px; padding: 15px 16px; margin-bottom: 10px; }
     .week-card.current { background: #0b160b; border-color: #4ade8055; }
     .week-card.future { opacity: 0.65; }
     .week-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-    .week-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 2px; }
+    .week-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
     .week-name-wrap { display: flex; align-items: center; gap: 7px; margin-bottom: 3px; }
     .week-name { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; }
     .week-dates { font-size: 12px; color: #2a2a2a; padding-left: 13px; }
     .week-amount { font-size: 22px; font-weight: 700; }
-    .week-amount-sub { font-size: 11px; color: #272727; margin-top: 1px; }
+    .week-amount-sub { font-size: 11px; color: #555; margin-top: 1px; }
     .week-mini-bar-bg { background: #141414; border-radius: 6px; height: 4px; overflow: hidden; margin-bottom: 12px; }
     .week-mini-bar { height: 100%; border-radius: 6px; }
+    /* Restant en cours */
+    .week-restant { border-radius: 10px; padding: 10px 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .week-restant.ok { background: #0d1f0d; border: 1px solid #4ade8033; }
+    .week-restant.over { background: #1f0d0d; border: 1px solid #ef444433; }
+    .week-restant-label { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+    .week-restant-val { font-size: 20px; font-weight: 700; }
+    /* Toggle */
     .week-toggle { display: flex; gap: 6px; margin-bottom: 10px; }
     .toggle-btn { flex: 1; padding: 7px; border: 1px solid #222; border-radius: 8px; background: transparent; color: #444; font-family: inherit; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; }
     .toggle-btn.active-dep { background: #1a1a1a; color: #f0f0f0; border-color: #333; }
     .toggle-btn.active-sol { background: #1a1a1a; color: #4ade80; border-color: #4ade8044; }
-    .week-input-row { display: flex; gap: 8px; }
-    .week-input { flex: 1; background: #141414; border: 1px solid #1e1e1e; border-radius: 10px; padding: 10px 12px; color: #ffffff; -webkit-text-fill-color: #ffffff; font-size: 14px; font-family: inherit; outline: none; }
+    .week-input-row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .week-input { flex: 1; background: #141414; border: 1px solid #252525; border-radius: 10px; padding: 10px 12px; font-size: 15px; font-family: inherit; outline: none; }
     .week-input.current { border-color: #4ade8044; }
     .week-input.solde-mode { border-color: #4ade8033; }
-    .week-ok-btn { background: #1a1a1a; color: #555; border: none; border-radius: 10px; padding: 0 18px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; }
-    .week-ok-btn.current { background: #4ade80; color: #000; }
+    .week-btn-row { display: flex; gap: 8px; }
+    .btn-valider { flex: 2; background: #4ade80; color: #000; border: none; border-radius: 10px; padding: 10px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; }
+    .btn-reset-sem { flex: 1; background: #1a1a1a; color: #ef4444; border: 1px solid #2a1a1a; border-radius: 10px; padding: 10px; font-weight: 700; font-size: 12px; cursor: pointer; font-family: inherit; }
+    .btn-ok { background: #1a1a1a; color: #555; border: none; border-radius: 10px; padding: 0 16px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; }
+    .btn-ok.current { background: #4ade80; color: #000; }
+    /* Historique */
     .history-card { background: #0e0e0e; border-radius: 18px; overflow: hidden; border: 1px solid #171717; }
     .history-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 18px; border-bottom: 1px solid #131313; }
     .history-row:last-child { border-bottom: none; }
@@ -88,19 +106,34 @@
   </style>
 </head>
 <body>
+
 <div id="loading"><span>Chargement…</span></div>
 <div id="flash"></div>
-<div id="confirm-modal">
+
+<div id="modal-reset-mois" class="modal">
   <div class="modal-box">
     <div class="modal-title">Remettre à zéro ?</div>
     <div class="modal-sub">Toutes les données de ce mois seront effacées.</div>
     <div class="modal-btns">
-      <button class="modal-cancel" onclick="closeModal()">Annuler</button>
-      <button class="modal-confirm" onclick="confirmReset()">Effacer</button>
+      <button class="modal-cancel" onclick="closeModal('modal-reset-mois')">Annuler</button>
+      <button class="modal-confirm" onclick="confirmResetMois()">Effacer</button>
     </div>
   </div>
 </div>
+
+<div id="modal-reset-sem" class="modal">
+  <div class="modal-box">
+    <div class="modal-title">Effacer la semaine ?</div>
+    <div class="modal-sub">Les données de cette semaine seront effacées.</div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal('modal-reset-sem')">Annuler</button>
+      <button class="modal-confirm" onclick="confirmResetSem()">Effacer</button>
+    </div>
+  </div>
+</div>
+
 <div class="statusbar"><span>Compte</span></div>
+
 <div class="hero">
   <div class="nav-month">
     <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
@@ -117,22 +150,35 @@
     <div class="progress-bar-bg"><div class="progress-bar" id="progress-bar"></div></div>
   </div>
 </div>
+
 <div class="section">
   <div class="section-title">Paramètres</div>
+
+  <!-- Rentrée d'argent -->
+  <div class="rentree-card">
+    <div class="rentree-label">+ Rentrée d'argent</div>
+    <div class="rentree-total" id="rentree-total">0 €</div>
+    <div class="rentree-row">
+      <input class="base-input" type="number" id="input-rentree" placeholder="Montant €" style="flex:1" />
+      <button class="btn-ok" style="padding:0 16px;border-radius:10px;background:#4ade80;color:#000;border:none;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;" onclick="saveRentree()">OK</button>
+    </div>
+  </div>
+
   <div class="params-grid">
     <div class="param-card">
       <div class="param-label">Départ</div>
       <div class="param-value" id="val-debut">—</div>
-      <input class="param-input" type="number" id="input-debut" placeholder="Montant €" />
+      <input class="base-input" type="number" id="input-debut" placeholder="Montant €" />
       <button class="param-btn btn-white" onclick="saveDebut()">OK</button>
     </div>
     <div class="param-card" id="card-objectif">
       <div class="param-label" id="label-objectif">Objectif</div>
       <div class="param-value" id="val-objectif">—</div>
-      <input class="param-input" type="number" id="input-objectif" placeholder="Montant €" />
+      <input class="base-input" type="number" id="input-objectif" placeholder="Montant €" />
       <button class="param-btn btn-green" onclick="saveObjectif()">OK</button>
     </div>
   </div>
+
   <div class="budget-card" id="budget-card" style="display:none">
     <div>
       <div class="budget-card-label">Budget / sem. pleine</div>
@@ -143,42 +189,357 @@
       <div class="budget-card-sub" id="budget-reste">—</div>
     </div>
   </div>
-  <button class="btn-red" onclick="openModal()">↺ Remise à zéro du mois</button>
+
+  <button class="btn-red-full" onclick="openModal('modal-reset-mois')">↺ Remise à zéro du mois</button>
 </div>
+
 <div class="section" id="semaines-section" style="display:none">
   <div class="section-title">Semaines</div>
   <div id="semaines-list"></div>
 </div>
+
 <div class="section" id="history-section" style="display:none">
   <div class="section-title">Historique</div>
   <div class="history-card" id="history-list"></div>
 </div>
+
 <script>
 const SUPABASE_URL='https://qwkovamgfsedcpytrimb.supabase.co';
 const SUPABASE_KEY='sb_publishable_CZi-2FMtg6Czewv5st-_Gg_FqotSkCZ';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-const GREEN='#4ade80',ORANGE='#fb923c';
+const GREEN='#4ade80',ORANGE='#fb923c',RED='#ef4444';
 let yr=new Date().getFullYear(),mo=new Date().getMonth(),cache={};
-let weekMode={};
-async function loadData(){try{const{data,error}=await sb.from('budget').select('key,value');if(error)throw error;cache={};(data||[]).forEach(r=>{cache[r.key]=r.value;});}catch(e){console.error(e);}}
-async function saveKey(key,value){cache[key]=value;try{await sb.from('budget').upsert({key,value},{onConflict:'key'});}catch(e){console.error(e);}}
-async function deleteKey(key){delete cache[key];try{await sb.from('budget').delete().eq('key',key);}catch(e){console.error(e);}}
+let weekMode={},semPending={};  // semPending[i] = valeur en cours non validée
+let resetSemIdx=null;
+
+async function loadData(){
+  try{
+    const{data,error}=await sb.from('budget').select('key,value');
+    if(error)throw error;
+    cache={};(data||[]).forEach(r=>{cache[r.key]=r.value;});
+  }catch(e){console.error(e);}
+}
+async function saveKey(key,value){
+  cache[key]=value;
+  try{await sb.from('budget').upsert({key,value},{onConflict:'key'});}
+  catch(e){console.error(e);}
+}
+async function deleteKey(key){
+  delete cache[key];
+  try{await sb.from('budget').delete().eq('key',key);}
+  catch(e){console.error(e);}
+}
+
 function fmt(n){return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n);}
 function monthName(y,m){return new Date(y,m,1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'});}
 const JOURS=['dim','lun','mar','mer','jeu','ven','sam'];
 function dowLabel(y,m,d){return JOURS[new Date(y,m,d).getDay()];}
-function getWeekRanges(y,m){const total=new Date(y,m+1,0).getDate();const firstDow=new Date(y,m,1).getDay();const daysToSun=firstDow===0?0:7-firstDow;const firstEnd=Math.min(1+daysToSun,total);const ranges=[{start:1,end:firstEnd}];let d=firstEnd+1;while(d<=total){ranges.push({start:d,end:Math.min(d+6,total)});d+=7;}return ranges;}
-function curWeekIdx(y,m){const t=new Date();if(t.getFullYear()!==y||t.getMonth()!==m)return -1;return getWeekRanges(y,m).findIndex(r=>t.getDate()>=r.start&&t.getDate()<=r.end);}
-function showFlash(msg){const el=document.getElementById('flash');el.textContent=msg;el.style.display='block';setTimeout(()=>el.style.display='none',1500);}
-function changeMonth(dir){mo+=dir;if(mo<0){mo=11;yr--;}if(mo>11){mo=0;yr++;}weekMode={};render();}
-function openModal(){document.getElementById('confirm-modal').classList.add('show');}
-function closeModal(){document.getElementById('confirm-modal').classList.remove('show');}
-async function confirmReset(){closeModal();await deleteKey(`${yr}-${mo}`);weekMode={};showFlash('Mois remis à zéro ✓');render();}
-async function saveDebut(){const v=parseFloat(document.getElementById('input-debut').value);if(isNaN(v))return;const key=`${yr}-${mo}`;const ranges=getWeekRanges(yr,mo);const rec={...(cache[key]||{}),debut:v,semaines:Array(ranges.length).fill(null)};await saveKey(key,rec);document.getElementById('input-debut').value='';showFlash('Départ enregistré ✓');render();}
-async function saveObjectif(){const v=parseFloat(document.getElementById('input-objectif').value);if(isNaN(v))return;const key=`${yr}-${mo}`;const rec={...(cache[key]||{}),objectif:v};await saveKey(key,rec);document.getElementById('input-objectif').value='';showFlash('Objectif enregistré ✓');render();}
-function setWeekMode(i,mode){weekMode[i]=mode;const btnDep=document.getElementById(`toggle-dep-${i}`);const btnSol=document.getElementById(`toggle-sol-${i}`);const inp=document.getElementById(`sem-input-${i}`);if(btnDep&&btnSol&&inp){btnDep.className='toggle-btn'+(mode==='dep'?' active-dep':'');btnSol.className='toggle-btn'+(mode==='sol'?' active-sol':'');inp.placeholder=mode==='sol'?'Solde actuel €':'Dépenses €';inp.className='week-input'+(curWeekIdx(yr,mo)===i?' current':'')+(mode==='sol'?' solde-mode':'');}}
-async function saveSem(i){const v=parseFloat(document.getElementById(`sem-input-${i}`).value);if(isNaN(v))return;const key=`${yr}-${mo}`;const ranges=getWeekRanges(yr,mo);const rec=cache[key]||{};const sems=rec.semaines?.length===ranges.length?[...rec.semaines]:Array(ranges.length).fill(null);const mode=weekMode[i]||'dep';const debut=rec.debut??null;if(mode==='sol'){const depAvant=sems.slice(0,i).reduce((s,x)=>s+(x??0),0);const soldePrecedent=debut!==null?debut-depAvant:null;if(soldePrecedent!==null){sems[i]=Math.max(0,soldePrecedent-v);}}else{sems[i]=v;}await saveKey(key,{...rec,semaines:sems});document.getElementById(`sem-input-${i}`).value='';showFlash(`Sem. ${i+1} enregistrée ✓`);render();}
-function render(){const key=`${yr}-${mo}`;const rec=cache[key]||{};const debut=rec.debut??null,objectif=rec.objectif??null;const ranges=getWeekRanges(yr,mo),nbW=ranges.length;const semaines=rec.semaines?.length===nbW?rec.semaines:Array(nbW).fill(null);const weekDays=ranges.map(r=>r.end-r.start+1);const cw=curWeekIdx(yr,mo);const depSaisie=semaines.reduce((s,v)=>s+(v??0),0);const soldeCour=debut!==null?debut-depSaisie:null;const joursRest=semaines.reduce((s,v,i)=>v===null?s+weekDays[i]:s,0);const margeRest=soldeCour!==null&&objectif!==null?Math.max(0,soldeCour-objectif):null;const budgetJour=margeRest!==null&&joursRest>0?margeRest/joursRest:null;const budgetSems=weekDays.map((d,i)=>{if(semaines[i]!==null)return semaines[i];if(budgetJour!==null)return Math.floor(budgetJour*d);return null;});const soldeEst=soldeCour!==null?soldeCour-budgetSems.reduce((s,v,i)=>semaines[i]===null?s+(v??0):s,0):null;const marge=debut!==null&&objectif!==null?debut-objectif:null;const pctDep=marge&&marge>0?Math.min(100,Math.round(depSaisie/marge*100)):0;const onTrack=soldeCour!==null&&objectif!==null?soldeCour>=objectif:null;const accent=onTrack===null?'#3a3a3a':onTrack?GREEN:ORANGE;document.getElementById('month-label').textContent=monthName(yr,mo);const soldeDisplay=soldeEst!==null?soldeEst:soldeCour;const sel=document.getElementById('solde-big');sel.textContent=soldeDisplay!==null?fmt(soldeDisplay):'—';sel.style.color=accent;const stEl=document.getElementById('solde-status');if(onTrack===true){stEl.textContent=`✓ Objectif atteint — ${fmt(objectif)}`;stEl.style.color=GREEN;}else if(onTrack===false){stEl.textContent=`⚠ Manque ${fmt(objectif-soldeCour)} pour l'objectif`;stEl.style.color=ORANGE;}else stEl.textContent='';const pw=document.getElementById('progress-wrap');if(marge!==null&&marge>0){pw.style.display='block';document.getElementById('prog-left').textContent=`Dépensé ${fmt(depSaisie)}`;document.getElementById('prog-right').textContent=`Marge ${fmt(marge)}`;const pb=document.getElementById('progress-bar');pb.style.width=pctDep+'%';pb.style.background=pctDep>95?ORANGE:GREEN;}else pw.style.display='none';const vd=document.getElementById('val-debut');vd.textContent=debut!==null?fmt(debut):'—';vd.style.color=debut!==null?'#f0f0f0':'#252525';const vo=document.getElementById('val-objectif'),lo=document.getElementById('label-objectif'),co=document.getElementById('card-objectif');vo.textContent=objectif!==null?fmt(objectif):'—';vo.style.color=objectif!==null?GREEN:'#252525';lo.style.color=objectif!==null?GREEN:'#383838';co.style.borderColor=objectif!==null?GREEN+'44':'#1a1a1a';const bc=document.getElementById('budget-card');if(budgetJour!==null){bc.style.display='flex';document.getElementById('budget-sem-val').textContent=fmt(Math.floor(budgetJour*7));document.getElementById('budget-reste').textContent=fmt(margeRest);}else bc.style.display='none';const secSem=document.getElementById('semaines-section');if(debut!==null){secSem.style.display='block';const list=document.getElementById('semaines-list');list.innerHTML='';ranges.forEach(({start,end},i)=>{const isCur=cw===i,isPast=i<cw&&cw!==-1,isFut=i>cw&&cw!==-1;const v=semaines[i],maxB=budgetSems[i],nj=weekDays[i];const over=v!==null&&maxB!==null?v>maxB:false;const dotCol=v!==null?(over?ORANGE:GREEN):(isCur?'#3a3a3a':'#1e1e1e');const nameCol=isCur?GREEN:(isPast?'#383838':'#333');const amtCol=v!==null?(over?ORANGE:GREEN):'#252525';const amtTxt=v!==null?fmt(v):(maxB!==null?fmt(maxB):'—');const subTxt=v!==null?(over?`+${fmt(v-maxB)} dépassé`:'sous budget'):'estimé';const miniBar=v!==null&&maxB!==null?`<div class="week-mini-bar-bg"><div class="week-mini-bar" style="width:${Math.min(100,Math.round(v/maxB*100))}%;background:${over?ORANGE:GREEN}"></div></div>`:'';const mode=weekMode[i]||'dep';const card=document.createElement('div');card.className='week-card'+(isCur?' current':'')+(isFut?' future':'');card.innerHTML=`<div class="week-header"><div><div class="week-name-wrap"><div class="week-dot" style="background:${dotCol}"></div><span class="week-name" style="color:${nameCol}">Semaine ${i+1}${isCur?' · en cours':isPast?' · passée':''}</span></div><div class="week-dates">${dowLabel(yr,mo,start)} ${start} → ${dowLabel(yr,mo,end)} ${end} · ${nj}j</div></div><div style="text-align:right"><div class="week-amount" style="color:${amtCol}">${amtTxt}</div><div class="week-amount-sub">${subTxt}</div></div></div>${miniBar}<div class="week-toggle"><button id="toggle-dep-${i}" class="toggle-btn${mode==='dep'?' active-dep':''}" onclick="setWeekMode(${i},'dep')">Dépenses</button><button id="toggle-sol-${i}" class="toggle-btn${mode==='sol'?' active-sol':''}" onclick="setWeekMode(${i},'sol')">Solde actuel</button></div><div class="week-input-row"><input id="sem-input-${i}" type="number" class="week-input${isCur?' current':''}${mode==='sol'?' solde-mode':''}" placeholder="${mode==='sol'?'Solde actuel €':'Dépenses €'}" /><button class="week-ok-btn${isCur?' current':''}" onclick="saveSem(${i})">OK</button></div>`;list.appendChild(card);document.getElementById(`sem-input-${i}`).addEventListener('keydown',e=>{if(e.key==='Enter')saveSem(i);});});}else secSem.style.display='none';const otherKeys=Object.keys(cache).filter(k=>k!==key);const secHist=document.getElementById('history-section');if(otherKeys.length>0){secHist.style.display='block';const hl=document.getElementById('history-list');hl.innerHTML='';otherKeys.sort((a,b)=>b.localeCompare(a)).slice(0,5).forEach((k)=>{const[y,m]=k.split('-').map(Number),r=cache[k]||{};const dep=(r.semaines||[]).reduce((s,v)=>s+(v??0),0);const fin=r.debut!=null?r.debut-dep:null;const hit=r.objectif!=null&&fin!=null?fin>=r.objectif:null;const row=document.createElement('div');row.className='history-row';row.innerHTML=`<div><div class="history-month">${new Date(y,m,1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}</div>${r.objectif!=null?`<div class="history-obj">obj. ${fmt(r.objectif)}</div>`:''}</div><div class="history-right">${hit!==null?`<div class="history-dot" style="background:${hit?GREEN:ORANGE}"></div>`:''} ${fin!=null?`<span class="history-amount" style="color:${hit===null?'#333':hit?GREEN:ORANGE}">${fmt(fin)}</span>`:''}</div>`;hl.appendChild(row);});}else secHist.style.display='none';}
+
+function getWeekRanges(y,m){
+  const total=new Date(y,m+1,0).getDate();
+  const firstDow=new Date(y,m,1).getDay();
+  const daysToSun=firstDow===0?0:7-firstDow;
+  const firstEnd=Math.min(1+daysToSun,total);
+  const ranges=[{start:1,end:firstEnd}];
+  let d=firstEnd+1;
+  while(d<=total){ranges.push({start:d,end:Math.min(d+6,total)});d+=7;}
+  return ranges;
+}
+
+function curWeekIdx(y,m){
+  const t=new Date();
+  if(t.getFullYear()!==y||t.getMonth()!==m)return -1;
+  return getWeekRanges(y,m).findIndex(r=>t.getDate()>=r.start&&t.getDate()<=r.end);
+}
+
+function showFlash(msg,col){
+  const el=document.getElementById('flash');
+  el.textContent=msg;el.style.background=col||GREEN;
+  el.style.color=col?'#fff':'#000';
+  el.style.display='block';
+  setTimeout(()=>el.style.display='none',1600);
+}
+
+function openModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+
+function changeMonth(dir){
+  mo+=dir;if(mo<0){mo=11;yr--;}if(mo>11){mo=0;yr++;}
+  weekMode={};semPending={};render();
+}
+
+async function confirmResetMois(){
+  closeModal('modal-reset-mois');
+  await deleteKey(`${yr}-${mo}`);
+  weekMode={};semPending={};
+  showFlash('Mois remis à zéro ✓');render();
+}
+
+function openResetSem(i){resetSemIdx=i;openModal('modal-reset-sem');}
+async function confirmResetSem(){
+  closeModal('modal-reset-sem');
+  if(resetSemIdx===null)return;
+  const key=`${yr}-${mo}`;const rec=cache[key]||{};
+  const ranges=getWeekRanges(yr,mo);
+  const sems=rec.semaines?.length===ranges.length?[...rec.semaines]:Array(ranges.length).fill(null);
+  sems[resetSemIdx]=null;
+  delete semPending[resetSemIdx];
+  await saveKey(key,{...rec,semaines:sems});
+  showFlash(`Semaine ${resetSemIdx+1} effacée ✓`);
+  resetSemIdx=null;render();
+}
+
+async function saveDebut(){
+  const v=parseFloat(document.getElementById('input-debut').value);if(isNaN(v))return;
+  const key=`${yr}-${mo}`;const ranges=getWeekRanges(yr,mo);
+  const rec={...(cache[key]||{}),debut:v,semaines:Array(ranges.length).fill(null)};
+  await saveKey(key,rec);
+  document.getElementById('input-debut').value='';
+  semPending={};showFlash('Départ enregistré ✓');render();
+}
+
+async function saveObjectif(){
+  const v=parseFloat(document.getElementById('input-objectif').value);if(isNaN(v))return;
+  const key=`${yr}-${mo}`;
+  const rec={...(cache[key]||{}),objectif:v};
+  await saveKey(key,rec);
+  document.getElementById('input-objectif').value='';
+  showFlash('Objectif enregistré ✓');render();
+}
+
+async function saveRentree(){
+  const v=parseFloat(document.getElementById('input-rentree').value);if(isNaN(v))return;
+  const key=`${yr}-${mo}`;
+  const rec=cache[key]||{};
+  const rentrees=(rec.rentrees||0)+v;
+  await saveKey(key,{...rec,rentrees});
+  document.getElementById('input-rentree').value='';
+  showFlash(`+${fmt(v)} ajouté ✓`);render();
+}
+
+function setWeekMode(i,mode){
+  weekMode[i]=mode;
+  const btnDep=document.getElementById(`tdep-${i}`);
+  const btnSol=document.getElementById(`tsol-${i}`);
+  const inp=document.getElementById(`sinp-${i}`);
+  const cw=curWeekIdx(yr,mo);
+  if(btnDep&&btnSol&&inp){
+    btnDep.className='toggle-btn'+(mode==='dep'?' active-dep':'');
+    btnSol.className='toggle-btn'+(mode==='sol'?' active-sol':'');
+    inp.placeholder=mode==='sol'?'Solde actuel €':'Dépenses €';
+    inp.className='week-input'+(cw===i?' current':'')+(mode==='sol'?' solde-mode':'');
+  }
+}
+
+// Saisie en cours → stocker dans semPending sans affecter les autres
+function onWeekInput(i){
+  const inp=document.getElementById(`sinp-${i}`);
+  const v=parseFloat(inp.value);
+  if(isNaN(v)){delete semPending[i];}
+  else{semPending[i]=v;}
+  updateRestant(i);
+}
+
+function updateRestant(i){
+  const key=`${yr}-${mo}`;const rec=cache[key]||{};
+  const ranges=getWeekRanges(yr,mo),nbW=ranges.length;
+  const semaines=rec.semaines?.length===nbW?rec.semaines:Array(nbW).fill(null);
+  const weekDays=ranges.map(r=>r.end-r.start+1);
+  const debut=(rec.debut||0)+(rec.rentrees||0);
+  const objectif=rec.objectif??null;
+
+  // Budget pour cette semaine (sans pending)
+  const depSaisie=semaines.reduce((s,v)=>s+(v??0),0);
+  const soldeCour=debut-depSaisie;
+  const joursRest=semaines.reduce((s,v,j)=>v===null?s+weekDays[j]:s,0);
+  const margeRest=objectif!==null?Math.max(0,soldeCour-objectif):soldeCour;
+  const budgetJour=joursRest>0?margeRest/joursRest:0;
+  const budgetSem=Math.floor(budgetJour*weekDays[i]);
+
+  const restEl=document.getElementById(`restant-${i}`);
+  if(!restEl)return;
+
+  const pending=semPending[i];
+  if(pending===undefined){restEl.style.display='none';return;}
+
+  const mode=weekMode[i]||'dep';
+  let depenses=pending;
+  if(mode==='sol'){
+    const depAvant=semaines.slice(0,i).reduce((s,x)=>s+(x??0),0);
+    const soldePrecedent=debut-depAvant;
+    depenses=Math.max(0,soldePrecedent-pending);
+  }
+
+  const restant=budgetSem-depenses;
+  const ok=restant>=0;
+  restEl.style.display='flex';
+  restEl.className='week-restant '+(ok?'ok':'over');
+  restEl.innerHTML=`
+    <span class="week-restant-label" style="color:${ok?GREEN:RED}">${ok?'Restant':'Dépassement'}</span>
+    <span class="week-restant-val" style="color:${ok?GREEN:RED}">${ok?fmt(restant):'-'+fmt(Math.abs(restant))}</span>`;
+}
+
+async function validerSem(i){
+  const inp=document.getElementById(`sinp-${i}`);
+  const v=parseFloat(inp.value);if(isNaN(v)){showFlash('Entrez un montant','#ef4444');return;}
+  const key=`${yr}-${mo}`;const ranges=getWeekRanges(yr,mo);
+  const rec=cache[key]||{};
+  const sems=rec.semaines?.length===ranges.length?[...rec.semaines]:Array(ranges.length).fill(null);
+  const mode=weekMode[i]||'dep';
+  const debut=(rec.debut||0)+(rec.rentrees||0);
+
+  if(mode==='sol'){
+    const depAvant=sems.slice(0,i).reduce((s,x)=>s+(x??0),0);
+    const soldePrecedent=debut-depAvant;
+    sems[i]=Math.max(0,soldePrecedent-v);
+  }else{
+    sems[i]=v;
+  }
+  inp.value='';
+  delete semPending[i];
+  await saveKey(key,{...rec,semaines:sems});
+  showFlash(`Semaine ${i+1} validée ✓`);render();
+}
+
+function calcBudget(rec,ranges){
+  const weekDays=ranges.map(r=>r.end-r.start+1);
+  const nbW=ranges.length;
+  const semaines=rec.semaines?.length===nbW?rec.semaines:Array(nbW).fill(null);
+  const debutBase=(rec.debut??0)+(rec.rentrees||0);
+  const objectif=rec.objectif??null;
+  const depSaisie=semaines.reduce((s,v)=>s+(v??0),0);
+  const soldeCour=debutBase-depSaisie;
+  const joursRest=semaines.reduce((s,v,i)=>v===null?s+weekDays[i]:s,0);
+  const margeRest=objectif!==null?Math.max(0,soldeCour-objectif):soldeCour;
+  const budgetJour=joursRest>0?margeRest/joursRest:null;
+  const budgetSems=weekDays.map((d,i)=>{
+    if(semaines[i]!==null)return semaines[i];
+    if(budgetJour!==null)return Math.floor(budgetJour*d);
+    return null;
+  });
+  const soldeEst=soldeCour-(budgetSems.reduce((s,v,i)=>semaines[i]===null?s+(v??0):s,0));
+  const marge=debutBase-(objectif??0);
+  const pctDep=marge>0?Math.min(100,Math.round(depSaisie/marge*100)):0;
+  const onTrack=objectif!==null?soldeCour>=objectif:null;
+  return{semaines,weekDays,debutBase,objectif,depSaisie,soldeCour,margeRest,budgetJour,budgetSems,soldeEst,marge,pctDep,onTrack};
+}
+
+function render(){
+  const key=`${yr}-${mo}`;const rec=cache[key]||{};
+  const ranges=getWeekRanges(yr,mo);
+  const{semaines,weekDays,debutBase,objectif,depSaisie,soldeCour,margeRest,budgetJour,budgetSems,soldeEst,marge,pctDep,onTrack}=calcBudget(rec,ranges);
+  const cw=curWeekIdx(yr,mo);
+  const accent=onTrack===null?'#3a3a3a':onTrack?GREEN:ORANGE;
+
+  // Header
+  document.getElementById('month-label').textContent=monthName(yr,mo);
+  const soldeDisplay=soldeEst;
+  const sel=document.getElementById('solde-big');
+  sel.textContent=debutBase>0?fmt(soldeDisplay):'—';sel.style.color=accent;
+  const stEl=document.getElementById('solde-status');
+  if(onTrack===true){stEl.textContent=`✓ Objectif atteint — ${fmt(objectif)}`;stEl.style.color=GREEN;}
+  else if(onTrack===false){stEl.textContent=`⚠ Manque ${fmt(objectif-soldeCour)} pour l'objectif`;stEl.style.color=ORANGE;}
+  else stEl.textContent='';
+
+  const pw=document.getElementById('progress-wrap');
+  if(marge>0){
+    pw.style.display='block';
+    document.getElementById('prog-left').textContent=`Dépensé ${fmt(depSaisie)}`;
+    document.getElementById('prog-right').textContent=`Marge ${fmt(marge)}`;
+    const pb=document.getElementById('progress-bar');
+    pb.style.width=pctDep+'%';pb.style.background=pctDep>95?ORANGE:GREEN;
+  }else pw.style.display='none';
+
+  // Rentrée
+  document.getElementById('rentree-total').textContent=fmt(rec.rentrees||0);
+
+  // Départ / Objectif
+  const vd=document.getElementById('val-debut');
+  vd.textContent=rec.debut!=null?fmt(rec.debut):'—';vd.style.color=rec.debut!=null?'#f0f0f0':'#252525';
+  const vo=document.getElementById('val-objectif'),lo=document.getElementById('label-objectif'),co=document.getElementById('card-objectif');
+  vo.textContent=objectif!=null?fmt(objectif):'—';vo.style.color=objectif!=null?GREEN:'#252525';
+  lo.style.color=objectif!=null?GREEN:'#383838';co.style.borderColor=objectif!=null?GREEN+'44':'#1a1a1a';
+
+  // Budget card
+  const bc=document.getElementById('budget-card');
+  if(budgetJour!==null){
+    bc.style.display='flex';
+    document.getElementById('budget-sem-val').textContent=fmt(Math.floor(budgetJour*7));
+    document.getElementById('budget-reste').textContent=fmt(margeRest);
+  }else bc.style.display='none';
+
+  // Semaines
+  const secSem=document.getElementById('semaines-section');
+  if(rec.debut==null){secSem.style.display='none';}
+  else{
+    secSem.style.display='block';
+    const list=document.getElementById('semaines-list');list.innerHTML='';
+    ranges.forEach(({start,end},i)=>{
+      const isCur=cw===i,isPast=i<cw&&cw!==-1,isFut=i>cw&&cw!==-1;
+      const v=semaines[i],maxB=budgetSems[i],nj=weekDays[i];
+      const over=v!==null&&maxB!==null?v>maxB:false;
+      const dotCol=v!==null?(over?ORANGE:GREEN):(isCur?'#3a3a3a':'#1e1e1e');
+      const nameCol=isCur?GREEN:(isPast?'#383838':'#333');
+      const amtCol=v!==null?(over?ORANGE:GREEN):'#252525';
+      const amtTxt=v!==null?fmt(v):(maxB!==null?fmt(maxB):'—');
+      const subTxt=v!==null?(over?`+${fmt(v-maxB)} dépassé`:'sous budget'):'estimé';
+      const mode=weekMode[i]||'dep';
+      const miniBarHtml=v!==null&&maxB!==null?`<div class="week-mini-bar-bg"><div class="week-mini-bar" style="width:${Math.min(100,Math.round(v/maxB*100))}%;background:${over?ORANGE:GREEN}"></div></div>`:'';
+
+      const card=document.createElement('div');
+      card.className='week-card'+(isCur?' current':'')+(isFut?' future':'');
+      card.innerHTML=`
+        <div class="week-header">
+          <div>
+            <div class="week-name-wrap">
+              <div class="week-dot" style="background:${dotCol}"></div>
+              <span class="week-name" style="color:${nameCol}">Semaine ${i+1}${isCur?' · en cours':isPast?' · passée':''}</span>
+            </div>
+            <div class="week-dates">${dowLabel(yr,mo,start)} ${start} → ${dowLabel(yr,mo,end)} ${end} · ${nj}j</div>
+          </div>
+          <div style="text-align:right">
+            <div class="week-amount" style="color:${amtCol}">${amtTxt}</div>
+            <div class="week-amount-sub">${subTxt}</div>
+          </div>
+        </div>
+        ${miniBarHtml}
+        <div id="restant-${i}" class="week-restant" style="display:none"></div>
+        <div class="week-toggle">
+          <button id="tdep-${i}" class="toggle-btn${mode==='dep'?' active-dep':''}" onclick="setWeekMode(${i},'dep')">Dépenses</button>
+          <button id="tsol-${i}" class="toggle-btn${mode==='sol'?' active-sol':''}" onclick="setWeekMode(${i},'sol')">Solde actuel</button>
+        </div>
+        <div class="week-input-row">
+          <input id="sinp-${i}" type="number" inputmode="decimal" class="week-input${isCur?' current':''}${mode==='sol'?' solde-mode':''}"
+            placeholder="${mode==='sol'?'Solde actuel €':'Dépenses €'}"
+            oninput="onWeekInput(${i})"
+            onkeydown="if(event.key==='Enter')validerSem(${i})" />
+        </div>
+        <div class="week-btn-row">
+          <button class="btn-valider" onclick="validerSem(${i})">✓ Valider</button>
+          <button class="btn-reset-sem" onclick="openResetSem(${i})">↺ Reset</button>
+        </div>`;
+      list.appendChild(card);
+    });
+  }
+
+  // Historique
+  const otherKeys=Object.keys(cache).filter(k=>k!==key);
+  const secHist=document.getElementById('history-section');
+  if(otherKeys.length>0){
+    secHist.style.display='block';
+    const hl=document.getElementById('history-list');hl.innerHTML='';
+    otherKeys.sort((a,b)=>b.localeCompare(a)).slice(0,5).forEach(k=>{
+      const[y,m]=k.split('-').map(Number),r=cache[k]||{};
+      const dep=(r.semaines||[]).reduce((s,v)=>s+(v??0),0);
+      const fin=r.debut!=null?r.debut-dep:null;
+      const hit=r.objectif!=null&&fin!=null?fin>=r.objectif:null;
+      const row=document.createElement('div');row.className='history-row';
+      row.innerHTML=`<div><div class="history-month">${new Date(y,m,1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}</div>${r.objectif!=null?`<div class="history-obj">obj. ${fmt(r.objectif)}</div>`:''}</div><div class="history-right">${hit!==null?`<div class="history-dot" style="background:${hit?GREEN:RED}"></div>`:''} ${fin!=null?`<span class="history-amount" style="color:${hit===null?'#333':hit?GREEN:RED}">${fmt(fin)}</span>`:''}</div>`;
+      hl.appendChild(row);
+    });
+  }else secHist.style.display='none';
+}
+
 (async()=>{await loadData();document.getElementById('loading').style.display='none';render();})();
 </script>
 </body>
