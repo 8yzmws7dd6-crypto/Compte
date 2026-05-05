@@ -10,98 +10,93 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body { font-family: 'Outfit', sans-serif; background: #090909; color: #f0f0f0; min-height: 100vh; max-width: 430px; margin: 0 auto; padding-bottom: 60px; }
-    input[type=number] { -moz-appearance: textfield; }
-    input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
-    #flash { position: fixed; top: 52px; left: 50%; transform: translateX(-50%); background: #4ade80; color: #000; padding: 8px 22px; border-radius: 30px; font-size: 12px; font-weight: 700; letter-spacing: 1px; z-index: 999; display: none; white-space: nowrap; }
-    #loading { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #090909; display: flex; align-items: center; justify-content: center; z-index: 9999; }
-    #loading span { font-size: 12px; color: #333; letter-spacing: 4px; text-transform: uppercase; }
-    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 9998; align-items: center; justify-content: center; }
-    .modal.show { display: flex; }
-    .modal-box { background: #111; border-radius: 20px; padding: 28px 24px; width: 300px; border: 1px solid #222; text-align: center; }
-    .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-    .modal-sub { font-size: 13px; color: #555; margin-bottom: 24px; }
-    .modal-btns { display: flex; gap: 10px; }
-    .modal-cancel { flex: 1; background: #1a1a1a; color: #888; border: none; border-radius: 12px; padding: 12px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
-    .modal-confirm { flex: 1; background: #ef4444; color: #fff; border: none; border-radius: 12px; padding: 12px; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
-    .statusbar { height: 44px; display: flex; align-items: center; justify-content: center; }
-    .statusbar span { font-size: 11px; color: #252525; letter-spacing: 4px; text-transform: uppercase; }
-    .hero { padding: 0 22px 24px; }
-    .nav-month { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-    .nav-btn { background: #141414; border: none; color: #555; width: 38px; height: 38px; border-radius: 12px; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: inherit; }
-    .month-label { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: #444; }
-    .solde-bloc { text-align: center; margin-bottom: 6px; }
-    .solde-sub { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #2e2e2e; margin-bottom: 10px; }
-    .solde-big { font-size: 58px; font-weight: 800; letter-spacing: -3px; line-height: 1; }
-    .solde-status { margin-top: 10px; font-size: 13px; font-weight: 500; min-height: 18px; }
-    .progress-wrap { margin-top: 20px; }
-    .progress-labels { display: flex; justify-content: space-between; font-size: 11px; color: #2e2e2e; margin-bottom: 6px; }
-    .progress-bar-bg { background: #141414; border-radius: 10px; height: 6px; overflow: hidden; }
-    .progress-bar { height: 100%; border-radius: 10px; transition: width .5s; }
-    .section { padding: 0 14px; margin-bottom: 10px; }
-    .section-title { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #222; margin-bottom: 8px; padding-left: 4px; }
-    .rentree-card { background: #0f0f0f; border-radius: 18px; padding: 15px; border: 1px solid #1a2a1a; margin-bottom: 10px; }
-    .rentree-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #2d5a2d; margin-bottom: 5px; }
-    .rentree-total { font-size: 18px; font-weight: 700; color: #4ade80; margin-bottom: 10px; }
-    .base-input { background: #222; border: 1px solid #333; border-radius: 10px; padding: 10px 12px; font-size: 15px; font-family: inherit; outline: none; color: #f0f0f0; width: 100%; }
-    .params-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-    .param-card { background: #0f0f0f; border-radius: 18px; padding: 15px; border: 1px solid #1a1a1a; }
-    .param-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #383838; margin-bottom: 5px; }
-    .param-value { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: #252525; }
-    .param-btn { width: 100%; border: none; border-radius: 10px; padding: 9px; font-weight: 700; font-size: 12px; cursor: pointer; font-family: inherit; margin-top: 7px; }
-    .btn-white { background: #f0f0f0; color: #000; }
-    .btn-green { background: #4ade80; color: #000; }
-    .btn-red-full { background: #1a1a1a; color: #ef4444; border: 1px solid #2a1a1a; width: 100%; border-radius: 12px; padding: 12px; font-family: inherit; font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; margin-top: 4px; }
-    .budget-card { background: #0f0f0f; border-radius: 18px; padding: 15px 18px; border: 1px solid #1a1a1a; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-    .budget-card-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #333; margin-bottom: 3px; }
-    .budget-card-val { font-size: 26px; font-weight: 700; }
-    .budget-card-right { text-align: right; }
-    .budget-card-sub { font-size: 17px; font-weight: 600; color: #444; }
-    .week-card { background: #0e0e0e; border: 1px solid #171717; border-radius: 18px; padding: 15px 16px; margin-bottom: 10px; }
-    .week-card.current { background: #0b160b; border-color: #4ade8055; }
-    .week-card.future { opacity: 0.65; }
-    .week-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-    .week-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
-    .week-name-wrap { display: flex; align-items: center; gap: 7px; margin-bottom: 3px; }
-    .week-name { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; }
-    .week-dates { font-size: 12px; color: #2a2a2a; padding-left: 13px; }
-    .week-budget { font-size: 22px; font-weight: 700; }
-    .week-budget-sub { font-size: 11px; color: #555; margin-top: 1px; }
-    .week-live { font-size: 13px; font-weight: 700; margin-top: 3px; display: none; }
-    .week-mini-bar-bg { background: #141414; border-radius: 6px; height: 4px; overflow: hidden; margin-bottom: 12px; }
-    .week-mini-bar { height: 100%; border-radius: 6px; }
-    /* Ligne solde actuel — case droite = input déguisé */
-    .week-solde-row { display: flex; gap: 8px; margin-bottom: 10px; align-items: stretch; }
-    .week-solde-label { flex: 1; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 12px 14px; font-size: 14px; font-weight: 700; color: #4ade80; display: flex; align-items: center; justify-content: center; letter-spacing: 1px; }
-    .week-solde-input { flex: 1; background: #141414; border: 1px solid #252525; border-radius: 12px; padding: 12px 14px; font-size: 22px; font-weight: 800; color: #f0f0f0; font-family: inherit; outline: none; text-align: right; width: 0; }
-    .week-solde-input:focus { border-color: #4ade8055; }
-    .week-solde-input.has-value { color: #f0f0f0; }
-    .week-solde-input::placeholder { color: #333; font-size: 16px; font-weight: 400; }
-    .week-btn-row { display: flex; gap: 8px; }
-    .btn-valider { flex: 2; background: #4ade80; color: #000; border: none; border-radius: 12px; padding: 13px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: inherit; }
-    .btn-reset-sem { flex: 1; background: #1a1a1a; color: #ef4444; border: 1px solid #2a1a1a; border-radius: 12px; padding: 13px; font-weight: 700; font-size: 12px; cursor: pointer; font-family: inherit; }
-    /* Restant affiché sous les boutons après validation */
-    .week-restant-display { border-radius: 10px; padding: 10px 14px; margin-top: 10px; display: none; justify-content: space-between; align-items: center; }
-    .week-restant-display.ok { background: #0d1f0d; border: 1px solid #4ade8033; }
-    .week-restant-display.over { background: #1f0d0d; border: 1px solid #ef444433; }
-    .week-restant-label { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
-    .week-restant-val { font-size: 18px; font-weight: 700; }
-    .history-card { background: #0e0e0e; border-radius: 18px; overflow: hidden; border: 1px solid #171717; }
-    .history-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 18px; border-bottom: 1px solid #131313; }
-    .history-row:last-child { border-bottom: none; }
-    .history-month { font-size: 13px; color: #484848; text-transform: capitalize; }
-    .history-obj { font-size: 11px; color: #252525; margin-top: 2px; }
-    .history-right { display: flex; align-items: center; gap: 8px; }
-    .history-dot { width: 6px; height: 6px; border-radius: 50%; }
-    .history-amount { font-size: 15px; font-weight: 700; }
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+    body{font-family:'Outfit',sans-serif;background:#090909;color:#f0f0f0;min-height:100vh;max-width:430px;margin:0 auto;padding-bottom:60px;}
+    input[type=number]{-moz-appearance:textfield;}
+    input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
+    #flash{position:fixed;top:52px;left:50%;transform:translateX(-50%);background:#4ade80;color:#000;padding:8px 22px;border-radius:30px;font-size:12px;font-weight:700;letter-spacing:1px;z-index:999;display:none;white-space:nowrap;}
+    #loading{position:fixed;top:0;left:0;right:0;bottom:0;background:#090909;display:flex;align-items:center;justify-content:center;z-index:9999;}
+    #loading span{font-size:12px;color:#333;letter-spacing:4px;text-transform:uppercase;}
+    .modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:9998;align-items:center;justify-content:center;}
+    .modal.show{display:flex;}
+    .modal-box{background:#111;border-radius:20px;padding:28px 24px;width:300px;border:1px solid #222;text-align:center;}
+    .modal-title{font-size:16px;font-weight:700;margin-bottom:8px;}
+    .modal-sub{font-size:13px;color:#555;margin-bottom:24px;}
+    .modal-btns{display:flex;gap:10px;}
+    .modal-cancel{flex:1;background:#1a1a1a;color:#888;border:none;border-radius:12px;padding:12px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;}
+    .modal-confirm{flex:1;background:#ef4444;color:#fff;border:none;border-radius:12px;padding:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
+    .statusbar{height:44px;display:flex;align-items:center;justify-content:center;}
+    .statusbar span{font-size:11px;color:#252525;letter-spacing:4px;text-transform:uppercase;}
+    .hero{padding:0 22px 24px;}
+    .nav-month{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px;}
+    .nav-btn{background:#141414;border:none;color:#555;width:38px;height:38px;border-radius:12px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;}
+    .month-label{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#444;}
+    .solde-bloc{text-align:center;margin-bottom:6px;}
+    .solde-sub{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#2e2e2e;margin-bottom:10px;}
+    .solde-big{font-size:58px;font-weight:800;letter-spacing:-3px;line-height:1;}
+    .solde-status{margin-top:10px;font-size:13px;font-weight:500;min-height:18px;}
+    .progress-wrap{margin-top:20px;}
+    .progress-labels{display:flex;justify-content:space-between;font-size:11px;color:#2e2e2e;margin-bottom:6px;}
+    .progress-bar-bg{background:#141414;border-radius:10px;height:6px;overflow:hidden;}
+    .progress-bar{height:100%;border-radius:10px;transition:width .5s;}
+    .section{padding:0 14px;margin-bottom:10px;}
+    .section-title{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#222;margin-bottom:8px;padding-left:4px;}
+    .rentree-card{background:#0f0f0f;border-radius:18px;padding:15px;border:1px solid #1a2a1a;margin-bottom:10px;}
+    .rentree-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#2d5a2d;margin-bottom:5px;}
+    .rentree-total{font-size:18px;font-weight:700;color:#4ade80;margin-bottom:10px;}
+    .base-input{background:#222;border:1px solid #333;border-radius:10px;padding:10px 12px;font-size:15px;font-family:inherit;outline:none;color:#f0f0f0;width:100%;}
+    .params-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+    .param-card{background:#0f0f0f;border-radius:18px;padding:15px;border:1px solid #1a1a1a;}
+    .param-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#383838;margin-bottom:5px;}
+    .param-value{font-size:22px;font-weight:700;margin-bottom:10px;color:#252525;}
+    .param-btn{width:100%;border:none;border-radius:10px;padding:9px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;margin-top:7px;}
+    .btn-white{background:#f0f0f0;color:#000;}
+    .btn-green{background:#4ade80;color:#000;}
+    .btn-red-full{background:#1a1a1a;color:#ef4444;border:1px solid #2a1a1a;width:100%;border-radius:12px;padding:12px;font-family:inherit;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-top:4px;}
+    .budget-card{background:#0f0f0f;border-radius:18px;padding:15px 18px;border:1px solid #1a1a1a;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+    .budget-card-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#333;margin-bottom:3px;}
+    .budget-card-val{font-size:26px;font-weight:700;}
+    .budget-card-right{text-align:right;}
+    .budget-card-sub{font-size:17px;font-weight:600;color:#444;}
+    .week-card{background:#0e0e0e;border:1px solid #171717;border-radius:18px;padding:15px 16px;margin-bottom:10px;}
+    .week-card.current{background:#0b160b;border-color:#4ade8055;}
+    .week-card.future{opacity:0.65;}
+    .week-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+    .week-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+    .week-name-wrap{display:flex;align-items:center;gap:7px;margin-bottom:3px;}
+    .week-name{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;}
+    .week-dates{font-size:12px;color:#2a2a2a;padding-left:13px;}
+    .week-budget{font-size:22px;font-weight:700;color:#4ade80;}
+    .week-budget-sub{font-size:11px;color:#555;margin-top:1px;}
+    .week-live{font-size:13px;font-weight:700;margin-top:4px;min-height:16px;}
+    .week-mini-bar-bg{background:#141414;border-radius:6px;height:4px;overflow:hidden;margin-bottom:12px;}
+    .week-mini-bar{height:100%;border-radius:6px;}
+    .week-solde-row{display:flex;gap:8px;margin-bottom:10px;align-items:stretch;}
+    .week-solde-label{flex:1;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:12px 14px;font-size:14px;font-weight:700;color:#4ade80;display:flex;align-items:center;justify-content:center;letter-spacing:1px;}
+    .week-solde-input{flex:1;background:#141414;border:1px solid #252525;border-radius:12px;padding:12px 14px;font-size:22px;font-weight:800;color:#f0f0f0;font-family:inherit;outline:none;text-align:right;width:0;}
+    .week-solde-input:focus{border-color:#4ade8055;}
+    .week-solde-input::placeholder{color:#333;font-size:15px;font-weight:400;}
+    .week-restant-bar{border-radius:10px;padding:10px 14px;margin-bottom:10px;display:none;justify-content:space-between;align-items:center;}
+    .week-restant-bar.ok{background:#0d1f0d;border:1px solid #4ade8033;}
+    .week-restant-bar.over{background:#1f0d0d;border:1px solid #ef444433;}
+    .week-restant-label{font-size:11px;letter-spacing:1px;text-transform:uppercase;}
+    .week-restant-val{font-size:18px;font-weight:700;}
+    .week-btn-row{display:flex;gap:8px;}
+    .btn-valider{flex:2;background:#4ade80;color:#000;border:none;border-radius:12px;padding:13px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;}
+    .btn-reset-sem{flex:1;background:#1a1a1a;color:#ef4444;border:1px solid #2a1a1a;border-radius:12px;padding:13px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;}
+    .history-card{background:#0e0e0e;border-radius:18px;overflow:hidden;border:1px solid #171717;}
+    .history-row{display:flex;justify-content:space-between;align-items:center;padding:13px 18px;border-bottom:1px solid #131313;}
+    .history-row:last-child{border-bottom:none;}
+    .history-month{font-size:13px;color:#484848;text-transform:capitalize;}
+    .history-obj{font-size:11px;color:#252525;margin-top:2px;}
+    .history-right{display:flex;align-items:center;gap:8px;}
+    .history-dot{width:6px;height:6px;border-radius:50%;}
+    .history-amount{font-size:15px;font-weight:700;}
   </style>
 </head>
 <body>
-
 <div id="loading"><span>Chargement…</span></div>
 <div id="flash"></div>
-
 <div id="modal-reset-mois" class="modal">
   <div class="modal-box">
     <div class="modal-title">Remettre à zéro ?</div>
@@ -112,7 +107,6 @@
     </div>
   </div>
 </div>
-
 <div id="modal-reset-sem" class="modal">
   <div class="modal-box">
     <div class="modal-title">Effacer la semaine ?</div>
@@ -123,9 +117,7 @@
     </div>
   </div>
 </div>
-
 <div class="statusbar"><span>Compte</span></div>
-
 <div class="hero">
   <div class="nav-month">
     <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
@@ -142,7 +134,6 @@
     <div class="progress-bar-bg"><div class="progress-bar" id="progress-bar"></div></div>
   </div>
 </div>
-
 <div class="section">
   <div class="section-title">Paramètres</div>
   <div class="rentree-card">
@@ -179,17 +170,14 @@
   </div>
   <button class="btn-red-full" onclick="openModal('modal-reset-mois')">↺ Remise à zéro du mois</button>
 </div>
-
 <div class="section" id="semaines-section" style="display:none">
   <div class="section-title">Semaines</div>
   <div id="semaines-list"></div>
 </div>
-
 <div class="section" id="history-section" style="display:none">
   <div class="section-title">Historique</div>
   <div class="history-card" id="history-list"></div>
 </div>
-
 <script>
 const SUPABASE_URL='https://qwkovamgfsedcpytrimb.supabase.co';
 const SUPABASE_KEY='sb_publishable_CZi-2FMtg6Czewv5st-_Gg_FqotSkCZ';
@@ -201,30 +189,27 @@ let resetSemIdx=null,weeksBuilt=false;
 async function loadData(){
   try{
     const{data,error}=await sb.from('budget').select('key,value');
-    if(error){console.error('Supabase error:',JSON.stringify(error));return;}
+    if(error){console.error('Supabase:',JSON.stringify(error));return;}
     cache={};(data||[]).forEach(r=>{cache[r.key]=r.value;});
-  }catch(e){console.error('Load failed:',e.message);}
+  }catch(e){console.error('Load:',e.message);}
 }
 async function saveKey(key,value){
   cache[key]=value;
   try{
     const{error}=await sb.from('budget').upsert({key,value},{onConflict:'key'});
-    if(error)console.error('Save error:',JSON.stringify(error));
-  }catch(e){console.error('Save failed:',e.message);}
+    if(error)console.error('Save:',JSON.stringify(error));
+  }catch(e){console.error('Save:',e.message);}
 }
 async function deleteKey(key){
   delete cache[key];
-  try{
-    const{error}=await sb.from('budget').delete().eq('key',key);
-    if(error)console.error('Delete error:',JSON.stringify(error));
-  }catch(e){console.error('Delete failed:',e.message);}
+  try{await sb.from('budget').delete().eq('key',key);}
+  catch(e){console.error('Del:',e.message);}
 }
 
 function fmt(n){return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n);}
 function monthName(y,m){return new Date(y,m,1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'});}
 const JOURS=['dim','lun','mar','mer','jeu','ven','sam'];
 function dowLabel(y,m,d){return JOURS[new Date(y,m,d).getDay()];}
-
 function getWeekRanges(y,m){
   const total=new Date(y,m+1,0).getDate();
   const firstDow=new Date(y,m,1).getDay();
@@ -260,30 +245,47 @@ function openResetSem(i){resetSemIdx=i;openModal('modal-reset-sem');}
 async function confirmResetSem(){
   closeModal('modal-reset-sem');
   if(resetSemIdx===null)return;
-  const key=`${yr}-${mo}`;const rec=cache[key]||{};
-  const ranges=getWeekRanges(yr,mo);
-  const sems=rec.semaines?.length===ranges.length?[...rec.semaines]:Array(ranges.length).fill(null);
-  sems[resetSemIdx]=null;
-  // Reset input + restant display
+  const key=`${yr}-${mo}`;const rec={...(cache[key]||{})};
+  const ranges=getWeekRanges(yr,mo),n=ranges.length;
+  const soldes=rec.soldes?.length===n?[...rec.soldes]:Array(n).fill(null);
+  soldes[resetSemIdx]=null;
+  rec.soldes=soldes;
+  // Recalcul dépenses
+  rec.semaines=soldesToSemaines(soldes,(rec.debut||0)+(rec.rentrees||0));
   const inp=document.getElementById(`sinp-${resetSemIdx}`);
-  if(inp){inp.value='';inp.placeholder='Tapez votre solde €';}
-  const rd=document.getElementById(`wrd-${resetSemIdx}`);
-  if(rd)rd.style.display='none';
-  await saveKey(key,{...rec,semaines:sems});
+  if(inp)inp.value='';
+  const rb=document.getElementById(`wrb-${resetSemIdx}`);
+  if(rb)rb.style.display='none';
+  await saveKey(key,rec);
   showFlash(`Semaine ${resetSemIdx+1} effacée ✓`);
   resetSemIdx=null;updateData();
 }
+
+// Convertit tableau de soldes en tableau de dépenses par semaine
+function soldesToSemaines(soldes,debutBase){
+  const sems=Array(soldes.length).fill(null);
+  let prev=debutBase;
+  for(let i=0;i<soldes.length;i++){
+    if(soldes[i]!==null){
+      sems[i]=Math.max(0,prev-soldes[i]);
+      prev=soldes[i];
+    }
+  }
+  return sems;
+}
+
 async function saveDebut(){
   const v=parseFloat(document.getElementById('input-debut').value);if(isNaN(v))return;
-  const key=`${yr}-${mo}`;const ranges=getWeekRanges(yr,mo);
-  const rec={...(cache[key]||{}),debut:v,semaines:Array(ranges.length).fill(null)};
+  const key=`${yr}-${mo}`;const ranges=getWeekRanges(yr,mo),n=ranges.length;
+  const rec={...(cache[key]||{}),debut:v,soldes:Array(n).fill(null),semaines:Array(n).fill(null)};
   await saveKey(key,rec);
   document.getElementById('input-debut').value='';
   weeksBuilt=false;showFlash('Départ enregistré ✓');render();
 }
 async function saveObjectif(){
   const v=parseFloat(document.getElementById('input-objectif').value);if(isNaN(v))return;
-  await saveKey(`${yr}-${mo}`,{...(cache[`${yr}-${mo}`]||{}),objectif:v});
+  const key=`${yr}-${mo}`;
+  await saveKey(key,{...(cache[key]||{}),objectif:v});
   document.getElementById('input-objectif').value='';
   showFlash('Objectif enregistré ✓');updateData();
 }
@@ -295,10 +297,92 @@ async function saveRentree(){
   showFlash(`+${fmt(v)} ajouté ✓`);updateData();
 }
 
+function getBudgetSem(i,rec,ranges){
+  const weekDays=ranges.map(r=>r.end-r.start+1);
+  const n=ranges.length;
+  const semaines=rec.semaines?.length===n?rec.semaines:Array(n).fill(null);
+  const debutBase=(rec.debut||0)+(rec.rentrees||0);
+  const objectif=rec.objectif??null;
+  const depSaisie=semaines.reduce((s,v)=>s+(v??0),0);
+  const soldeCour=debutBase-depSaisie;
+  const joursRest=semaines.reduce((s,v,j)=>v===null?s+weekDays[j]:s,0);
+  const margeRest=objectif!==null?Math.max(0,soldeCour-objectif):soldeCour;
+  const budgetJour=joursRest>0?margeRest/joursRest:0;
+  return Math.floor(budgetJour*weekDays[i]);
+}
+
+function onWeekInput(i){
+  const inp=document.getElementById(`sinp-${i}`);
+  const val=parseFloat(inp.value);
+  const liveEl=document.getElementById(`wlive-${i}`);
+  if(!liveEl)return;
+  if(isNaN(val)){liveEl.textContent='';return;}
+
+  const key=`${yr}-${mo}`;const rec=cache[key]||{};
+  const ranges=getWeekRanges(yr,mo),n=ranges.length;
+  const weekDays=ranges.map(r=>r.end-r.start+1);
+  const debutBase=(rec.debut||0)+(rec.rentrees||0);
+  const semaines=rec.semaines?.length===n?rec.semaines:Array(n).fill(null);
+  const depAvant=semaines.slice(0,i).reduce((s,x)=>s+(x??0),0);
+  const soldeAvantSem=debutBase-depAvant;
+  const depenses=Math.max(0,soldeAvantSem-val);
+  const budgetSem=getBudgetSem(i,rec,ranges);
+  const restant=budgetSem-depenses;
+  const ok=restant>=0;
+  liveEl.textContent=(ok?'Restant ':'-')+fmt(Math.abs(restant));
+  liveEl.style.color=ok?GREEN:RED;
+}
+
+async function validerSem(i){
+  const inp=document.getElementById(`sinp-${i}`);
+  const val=parseFloat(inp.value);
+  if(isNaN(val)){showFlash('Entrez un solde actuel',RED);return;}
+
+  const key=`${yr}-${mo}`;const ranges=getWeekRanges(yr,mo),n=ranges.length;
+  const rec={...(cache[key]||{})};
+  const debutBase=(rec.debut||0)+(rec.rentrees||0);
+
+  // Stocker le solde saisi — remplace la valeur précédente
+  const soldes=rec.soldes?.length===n?[...rec.soldes]:Array(n).fill(null);
+  soldes[i]=val;
+  rec.soldes=soldes;
+  // Recalculer dépenses depuis les soldes
+  rec.semaines=soldesToSemaines(soldes,debutBase);
+
+  // Calculer restant à afficher
+  const weekDays=ranges.map(r=>r.end-r.start+1);
+  const objectif=rec.objectif??null;
+  const depSaisie=rec.semaines.reduce((s,v)=>s+(v??0),0);
+  const soldeCour=debutBase-depSaisie;
+  const joursRest=rec.semaines.reduce((s,v,j)=>v===null?s+weekDays[j]:s,0);
+  const margeRest=objectif!==null?Math.max(0,soldeCour-objectif):soldeCour;
+  const budgetJour=joursRest>0?margeRest/joursRest:0;
+  const budgetSem=Math.floor(budgetJour*weekDays[i]);
+  const depSem=rec.semaines[i]??0;
+  const restant=budgetSem-depSem;
+  const ok=restant>=0;
+
+  // Garder le solde affiché dans l'input
+  // Cacher live
+  const liveEl=document.getElementById(`wlive-${i}`);
+  if(liveEl)liveEl.textContent='';
+
+  // Afficher restant persistant
+  const rb=document.getElementById(`wrb-${i}`);
+  if(rb){
+    rb.style.display='flex';
+    rb.className='week-restant-bar '+(ok?'ok':'over');
+    rb.innerHTML=`<span class="week-restant-label" style="color:${ok?GREEN:RED}">${ok?'Restant':'Dépassement'}</span><span class="week-restant-val" style="color:${ok?GREEN:RED}">${ok?fmt(restant):'-'+fmt(Math.abs(restant))}</span>`;
+  }
+
+  await saveKey(key,rec);
+  showFlash(`Semaine ${i+1} validée ✓`);updateData();
+}
+
 function calcBudget(rec,ranges){
   const weekDays=ranges.map(r=>r.end-r.start+1);
-  const nbW=ranges.length;
-  const semaines=rec.semaines?.length===nbW?rec.semaines:Array(nbW).fill(null);
+  const n=ranges.length;
+  const semaines=rec.semaines?.length===n?rec.semaines:Array(n).fill(null);
   const debutBase=(rec.debut??0)+(rec.rentrees||0);
   const objectif=rec.objectif??null;
   const depSaisie=semaines.reduce((s,v)=>s+(v??0),0);
@@ -316,86 +400,6 @@ function calcBudget(rec,ranges){
   const pctDep=marge>0?Math.min(100,Math.round(depSaisie/marge*100)):0;
   const onTrack=objectif!==null?soldeCour>=objectif:null;
   return{semaines,weekDays,debutBase,objectif,depSaisie,soldeCour,margeRest,budgetJour,budgetSems,soldeEst,marge,pctDep,onTrack};
-}
-
-// Appelé à chaque frappe dans la case solde
-function onWeekInput(i){
-  const inp=document.getElementById(`sinp-${i}`);
-  const val=parseFloat(inp.value);
-  const liveEl=document.getElementById(`wlive-${i}`);
-  const rdEl=document.getElementById(`wrd-${i}`);
-
-  if(isNaN(val)){
-    if(liveEl)liveEl.style.display='none';
-    return;
-  }
-
-  const key=`${yr}-${mo}`;const rec=cache[key]||{};
-  const ranges=getWeekRanges(yr,mo),nbW=ranges.length;
-  const semaines=rec.semaines?.length===nbW?rec.semaines:Array(nbW).fill(null);
-  const weekDays=ranges.map(r=>r.end-r.start+1);
-  const debutBase=(rec.debut||0)+(rec.rentrees||0);
-  const objectif=rec.objectif??null;
-  const depSaisie=semaines.reduce((s,v)=>s+(v??0),0);
-  const soldeCour=debutBase-depSaisie;
-  const joursRest=semaines.reduce((s,v,j)=>v===null?s+weekDays[j]:s,0);
-  const margeRest=objectif!==null?Math.max(0,soldeCour-objectif):soldeCour;
-  const budgetJour=joursRest>0?margeRest/joursRest:0;
-  const budgetSem=Math.floor(budgetJour*weekDays[i]);
-  const depAvant=semaines.slice(0,i).reduce((s,x)=>s+(x??0),0);
-  const soldeAvantSem=debutBase-depAvant;
-  const depenses=Math.max(0,soldeAvantSem-val);
-  const restant=budgetSem-depenses;
-  const ok=restant>=0;
-
-  if(liveEl){
-    liveEl.style.display='block';
-    liveEl.textContent=(ok?'Restant ':'-')+fmt(Math.abs(restant));
-    liveEl.style.color=ok?GREEN:RED;
-  }
-}
-
-async function validerSem(i){
-  const inp=document.getElementById(`sinp-${i}`);
-  const val=parseFloat(inp.value);
-  if(isNaN(val)){showFlash('Entrez un solde actuel',RED);return;}
-
-  const key=`${yr}-${mo}`;const ranges=getWeekRanges(yr,mo);
-  const rec=cache[key]||{};
-  const sems=rec.semaines?.length===ranges.length?[...rec.semaines]:Array(ranges.length).fill(null);
-  const debutBase=(rec.debut||0)+(rec.rentrees||0);
-  const depAvant=sems.slice(0,i).reduce((s,x)=>s+(x??0),0);
-  sems[i]=Math.max(0,(debutBase-depAvant)-val);
-
-  // Calculer restant pour l'afficher après validation
-  const weekDays=ranges.map(r=>r.end-r.start+1);
-  const objectif=rec.objectif??null;
-  const depSaisie=sems.reduce((s,v)=>s+(v??0),0);
-  const soldeCour=debutBase-depSaisie;
-  const joursRest=sems.reduce((s,v,j)=>v===null?s+weekDays[j]:s,0);
-  const margeRest=objectif!==null?Math.max(0,soldeCour-objectif):soldeCour;
-  const budgetJour=joursRest>0?margeRest/joursRest:0;
-  const budgetSem=Math.floor(budgetJour*weekDays[i]);
-  const restant=budgetSem-sems[i];
-  const ok=restant>=0;
-
-  // Garder le solde affiché dans l'input après validation
-  // inp.value reste tel quel — on ne le vide pas
-
-  // Cacher le live
-  const liveEl=document.getElementById(`wlive-${i}`);
-  if(liveEl)liveEl.style.display='none';
-
-  // Afficher le restant persistant
-  const rdEl=document.getElementById(`wrd-${i}`);
-  if(rdEl){
-    rdEl.style.display='flex';
-    rdEl.className='week-restant-display '+(ok?'ok':'over');
-    rdEl.innerHTML=`<span class="week-restant-label" style="color:${ok?GREEN:RED}">${ok?'Restant':'Dépassement'}</span><span class="week-restant-val" style="color:${ok?GREEN:RED}">${ok?fmt(restant):'-'+fmt(Math.abs(restant))}</span>`;
-  }
-
-  await saveKey(key,{...rec,semaines:sems});
-  showFlash(`Semaine ${i+1} validée ✓`);updateData();
 }
 
 function updateData(){
@@ -433,22 +437,27 @@ function updateData(){
     document.getElementById('budget-reste').textContent=fmt(margeRest);
   }else bc.style.display='none';
 
-  // Update budgets semaines sans toucher aux inputs
   ranges.forEach((_,i)=>{
     const maxB=budgetSems[i];
+    const v=semaines[i];
+    const over=v!==null&&maxB!==null?v>maxB:false;
     const dotEl=document.getElementById(`wdot-${i}`);
     const budEl=document.getElementById(`wbud-${i}`);
     const barWrap=document.getElementById(`wbar-${i}`);
-    const v=semaines[i];
-    const over=v!==null&&maxB!==null?v>maxB:false;
     if(dotEl)dotEl.style.background=v!==null?(over?ORANGE:GREEN):(cw===i?'#3a3a3a':'#1e1e1e');
-    if(budEl&&maxB!==null)budEl.textContent=fmt(maxB);
+    if(budEl)budEl.textContent=maxB!==null?fmt(maxB):'—';
     if(barWrap){
       if(v!==null&&maxB!==null){
         barWrap.style.display='block';
         const bar=barWrap.querySelector('div');
         if(bar){bar.style.width=Math.min(100,Math.round(v/maxB*100))+'%';bar.style.background=over?ORANGE:GREEN;}
       }else barWrap.style.display='none';
+    }
+    // Restaurer solde dans l'input si déjà validé
+    const soldes=rec.soldes||[];
+    const inp=document.getElementById(`sinp-${i}`);
+    if(inp&&soldes[i]!=null&&inp.value===''){
+      inp.value=soldes[i];
     }
   });
 
@@ -472,8 +481,9 @@ function updateData(){
 
 function buildWeeks(){
   const key=`${yr}-${mo}`;const rec=cache[key]||{};
-  const ranges=getWeekRanges(yr,mo),nbW=ranges.length;
-  const semaines=rec.semaines?.length===nbW?rec.semaines:Array(nbW).fill(null);
+  const ranges=getWeekRanges(yr,mo),n=ranges.length;
+  const semaines=rec.semaines?.length===n?rec.semaines:Array(n).fill(null);
+  const soldes=rec.soldes?.length===n?rec.soldes:Array(n).fill(null);
   const weekDays=ranges.map(r=>r.end-r.start+1);
   const cw=curWeekIdx(yr,mo);
   const{budgetSems,debutBase}=calcBudget(rec,ranges);
@@ -501,7 +511,7 @@ function buildWeeks(){
           <div class="week-dates">${dowLabel(yr,mo,start)} ${start} → ${dowLabel(yr,mo,end)} ${end} · ${nj}j</div>
         </div>
         <div style="text-align:right">
-          <div id="wbud-${i}" class="week-budget" style="color:#4ade80">${maxB!==null?fmt(maxB):'—'}</div>
+          <div id="wbud-${i}" class="week-budget">${maxB!==null?fmt(maxB):'—'}</div>
           <div class="week-budget-sub">budget sem.</div>
           <div id="wlive-${i}" class="week-live"></div>
         </div>
@@ -513,11 +523,12 @@ function buildWeeks(){
         <div class="week-solde-label">Solde Actuel</div>
         <input id="sinp-${i}" type="number" inputmode="decimal"
           class="week-solde-input"
-          placeholder="Tapez votre solde €"
+          placeholder="Tapez solde €"
+          value="${soldes[i]!==null?soldes[i]:''}"
           oninput="onWeekInput(${i})"
           onkeydown="if(event.key==='Enter')validerSem(${i})" />
       </div>
-      <div id="wrd-${i}" class="week-restant-display"></div>
+      <div id="wrb-${i}" class="week-restant-bar"></div>
       <div class="week-btn-row">
         <button class="btn-valider" onclick="validerSem(${i})">✓ Valider</button>
         <button class="btn-reset-sem" onclick="openResetSem(${i})">↺ Reset</button>
