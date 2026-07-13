@@ -335,22 +335,41 @@ function calcBudget(rec, ranges) {
   const n = ranges.length;
   const semaines = rec.semaines && rec.semaines.length === n ? rec.semaines : Array(n).fill(null);
   const debutBase = rec.debut || 0;
-  const objectif = rec.objectif != null ? rec.objectif : null;
-  const depSaisie = semaines.reduce(function(s, v) { return s + (v || 0); }, 0);
-  const soldeCour = debutBase - depSaisie;
-  const joursRest = semaines.reduce(function(s, v, i) { return v === null ? s + weekDays[i] : s; }, 0);
-  const margeRest = objectif !== null ? Math.max(0, soldeCour - objectif) : soldeCour;
-  const budgetJour = joursRest > 0 ? margeRest / joursRest : null;
-  const budgetSems = weekDays.map(function(d, i) {
+  const objectif = rec.objectif != null ? rec.objectif : 0;
+  const soldJours = rec.soldJours || {};
+  const totalDaysInMonth = new Date(yr, mo + 1, 0).getDate();
+  const todayD = TODAY.getDate();
+  const isCurrentMonth = TODAY.getFullYear() === yr && TODAY.getMonth() === mo;
+
+  // Trouver le dernier solde journalier saisi (tous mois confondus)
+  let dernierSolde = debutBase;
+  let dernierJour = 0;
+  Object.keys(soldJours).forEach(function(k) {
+    const parts = k.split('-');
+    const d = parseInt(parts[2]);
+    if (d > dernierJour) { dernierJour = d; dernierSolde = soldJours[k]; }
+  });
+
+  // Budget/jour = (dernier solde - objectif) / jours restants depuis dernier jour saisi
+  const joursRestants = dernierJour > 0 ? totalDaysInMonth - dernierJour : (isCurrentMonth ? totalDaysInMonth - todayD + 1 : totalDaysInMonth);
+  const margeRest = Math.max(0, dernierSolde - objectif);
+  const budgetJour = joursRestants > 0 ? margeRest / joursRestants : null;
+
+  // Budget par semaine basé sur jours restants de chaque semaine
+  const budgetSems = ranges.map(function(r, i) {
     if (semaines[i] !== null) return semaines[i];
-    if (budgetJour !== null) return Math.floor(budgetJour * d);
+    if (budgetJour !== null) return Math.floor(budgetJour * weekDays[i]);
     return null;
   });
-  const soldeEst = soldeCour - budgetSems.reduce(function(s, v, i) { return semaines[i] === null ? s + (v || 0) : s; }, 0);
-  const marge = debutBase - (objectif || 0);
-  const pctDep = marge > 0 ? Math.min(100, Math.round(depSaisie / marge * 100)) : 0;
-  const onTrack = objectif !== null ? soldeCour >= objectif : null;
-  return { semaines: semaines, weekDays: weekDays, debutBase: debutBase, objectif: objectif, depSaisie: depSaisie, soldeCour: soldeCour, margeRest: margeRest, budgetJour: budgetJour, budgetSems: budgetSems, soldeEst: soldeEst, marge: marge, pctDep: pctDep, onTrack: onTrack };
+
+  const depSaisie = semaines.reduce(function(s, v) { return s + (v || 0); }, 0);
+  const soldeCour = debutBase - depSaisie;
+  const marge = debutBase - objectif;
+  const pctDep = marge > 0 ? Math.min(100, Math.round((debutBase - dernierSolde) / marge * 100)) : 0;
+  const onTrack = dernierSolde >= objectif;
+  const soldeEst = dernierSolde; // Le dernier solde connu est notre meilleure estimation
+
+  return { semaines: semaines, weekDays: weekDays, debutBase: debutBase, objectif: objectif, depSaisie: depSaisie, soldeCour: soldeCour, margeRest: margeRest, budgetJour: budgetJour, budgetSems: budgetSems, soldeEst: soldeEst, marge: marge, pctDep: pctDep, onTrack: onTrack, dernierSolde: dernierSolde, dernierJour: dernierJour };
 }
 
 async function validerJour(d) {
@@ -637,14 +656,13 @@ function render() {
         '</div>' +
         daysHtml +
         '<div class="week-solde-row">' +
-          '<div class="week-solde-label">Solde fin de semaine</div>' +
-          '<input id="sinp-' + i + '" type="number" inputmode="decimal" class="week-solde-input" placeholder="Solde €" ' +
-            'value="' + (soldes[i] !== null ? soldes[i] : '') + '" ' +
-            'oninput="onWeekInput(' + i + ')" onkeydown="if(event.key===\'Enter\')validerSem(' + i + ')" />' +
+          '<div class="week-solde-label">Solde fin sem.</div>' +
+          '<div class="week-solde-input" style="display:flex;align-items:center;justify-content:flex-end;color:#555;font-size:18px;">' +
+            (soldes[i] !== null ? fmt(soldes[i]) : '—') +
+          '</div>' +
         '</div>' +
         '<div class="week-btn-row">' +
-          '<button class="btn-valider" onclick="validerSem(' + i + ')">✓ Valider sem.</button>' +
-          '<button class="btn-reset-sem" onclick="openResetSem(' + i + ')">↺ Reset</button>' +
+          '<button class="btn-reset-sem" style="flex:1" onclick="openResetSem(' + i + ')">↺ Reset semaine</button>' +
         '</div>';
       list.appendChild(card);
     });
