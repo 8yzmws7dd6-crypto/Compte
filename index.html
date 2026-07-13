@@ -89,6 +89,7 @@
     .day-solde-input:focus{border-color:#4ade8044;}
     .day-solde-input::placeholder{color:#333;font-size:13px;font-weight:400;}
     .day-valider{background:#4ade80;color:#000;border:none;border-radius:8px;padding:8px 14px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;flex-shrink:0;}
+    .day-effacer{background:#1a1a1a;color:#ef4444;border:1px solid #2a1a1a;border-radius:8px;padding:8px 10px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;flex-shrink:0;}
     /* Semaine solde fin */
     .week-solde-row{display:flex;gap:8px;margin-bottom:10px;align-items:stretch;}
     .week-solde-label{flex:1;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:12px 14px;font-size:13px;font-weight:700;color:#4ade80;display:flex;align-items:center;justify-content:center;letter-spacing:1px;text-align:center;}
@@ -334,7 +335,18 @@ async function validerJour(d){
   weeksBuilt=false;render();
 }
 
-function updateDayDisplay(d,solde,rec){
+async function effacerJour(d){
+  const key=`${yr}-${mo}`;
+  const rec={...(cache[key]||{})};
+  const soldJours={...(rec.soldJours||{})};
+  delete soldJours[`${yr}-${mo}-${d}`];
+  rec.soldJours=soldJours;
+  const inp=document.getElementById(`dinp-${d}`);
+  if(inp)inp.value='';
+  await saveKey(key,rec);
+  showFlash(`Jour ${d} effacé ✓`);
+  weeksBuilt=false;render();
+}
   const restEl=document.getElementById(`drest-${d}`);
   const ranges=getWeekRanges(yr,mo);
   const{budgetJour,semaines,debutBase,objectif}=calcBudget(rec,ranges);
@@ -608,6 +620,7 @@ function buildWeeks(){
               oninput="onDayInput(${d})"
               onkeydown="if(event.key==='Enter')validerJour(${d})" />
             <button class="day-valider" onclick="validerJour(${d})">✓</button>
+            <button class="day-effacer" onclick="effacerJour(${d})">✕</button>
           </div>
         </div>`;
       }
