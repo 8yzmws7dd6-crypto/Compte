@@ -548,8 +548,17 @@ function render() {
       let daysHtml = '';
       if (isCur && calc.budgetJour !== null) {
         const depSemAvant = calc.semaines.slice(0, i).reduce(function(s, x) { return s + (x || 0); }, 0);
-        let soldePrevDay = calc.debutBase - depSemAvant;
         const totalDaysInMonth = new Date(yr, mo + 1, 0).getDate();
+        // Trouver le dernier solde connu parmi tous les jours de la semaine
+        let dernierSoldeConnu = calc.debutBase - depSemAvant;
+        for (let d = start; d <= end; d++) {
+          const k = yr + '-' + mo + '-' + d;
+          if (soldJours[k] !== undefined) dernierSoldeConnu = soldJours[k];
+        }
+        // Budget/jour fixe basé sur dernier solde connu / jours restants depuis aujourd'hui
+        const joursRestantsDepuisAujdhui = totalDaysInMonth - todayDate + 1;
+        const budJourBase = joursRestantsDepuisAujdhui > 0 ? Math.floor(dernierSoldeConnu / joursRestantsDepuisAujdhui) : 0;
+        let soldePrevDay = calc.debutBase - depSemAvant;
         daysHtml = '<div style="margin-bottom:12px">';
         for (let d = start; d <= end; d++) {
           const dow = new Date(yr, mo, d).getDay();
@@ -558,16 +567,16 @@ function render() {
           const isPastDay = isCurrentMonth && d < todayDate;
           const soldJourKey = yr + '-' + mo + '-' + d;
           const soldJourVal = soldJours[soldJourKey];
-          // Jours restants dans le mois à partir d'aujourd'hui (pas de d)
-          const jourRef = Math.max(d, todayDate);
-          const joursRestantsMois = totalDaysInMonth - jourRef + 1;
-          // Budget/jour = dernier solde connu / jours restants
-          const budJour = joursRestantsMois > 0 ? Math.floor(soldePrevDay / joursRestantsMois) : 0;
+          // Budget du jour : si solde saisi ce jour, calculer depuis solde précédent, sinon utiliser budJourBase
+          const joursRestantsJour = totalDaysInMonth - d + 1;
+          const budJour = soldJourVal !== undefined
+            ? (joursRestantsJour > 0 ? Math.floor(soldJourVal / joursRestantsJour) : 0)
+            : budJourBase;
           let restantJour = null;
           let restantHtml = '';
           if (soldJourVal !== undefined) {
             const depJour = Math.max(0, soldePrevDay - soldJourVal);
-            restantJour = budJour - depJour;
+            restantJour = Math.floor(soldePrevDay / joursRestantsJour) - depJour;
             restantHtml = '<div class="day-restant" style="color:' + (restantJour >= 0 ? GREEN : RED) + '">' +
               (restantJour >= 0 ? 'Restant ' + fmt(restantJour) : '-' + fmt(Math.abs(restantJour))) + '</div>';
             soldePrevDay = soldJourVal;
