@@ -55,6 +55,7 @@
     .budget-card-val{font-size:26px;font-weight:700;}
     .budget-card-right{text-align:right;}
     .budget-card-sub{font-size:17px;font-weight:600;color:#444;}
+    /* Semaines */
     .week-card{background:#0e0e0e;border:1px solid #171717;border-radius:18px;padding:15px 16px;margin-bottom:10px;}
     .week-card.current{background:#0b160b;border-color:#4ade8055;}
     .week-card.future{opacity:0.65;}
@@ -72,26 +73,32 @@
     .week-post-rest{font-size:14px;font-weight:700;margin-top:2px;}
     .week-mini-bar-bg{background:#141414;border-radius:6px;height:4px;overflow:hidden;margin-bottom:12px;}
     .week-mini-bar{height:100%;border-radius:6px;}
-    /* Jours détaillés */
-    .days-grid{margin-bottom:12px;}
-    .day-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #141414;}
-    .day-row:last-child{border-bottom:none;}
-    .day-row.today .day-label{color:#4ade80;font-weight:700;}
-    .day-row.today .day-budget{color:#4ade80;}
-    .day-row.past .day-label{color:#333;}
-    .day-row.past .day-budget{color:#333;}
-    .day-label{font-size:13px;color:#555;text-transform:uppercase;letter-spacing:1px;}
-    .day-budget{font-size:14px;font-weight:700;color:#f0f0f0;}
-    .day-budget-sub{font-size:11px;color:#444;margin-top:1px;text-align:right;}
-    /* Saisie solde */
+    /* Jours */
+    .day-card{background:#0a0a0a;border-radius:12px;padding:12px 14px;margin-bottom:8px;border:1px solid #141414;}
+    .day-card.today{background:#0a140a;border-color:#4ade8033;}
+    .day-card.past{opacity:0.4;}
+    .day-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+    .day-label{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#555;}
+    .day-label.today{color:#4ade80;font-weight:700;}
+    .day-right{text-align:right;}
+    .day-budget{font-size:16px;font-weight:700;color:#f0f0f0;}
+    .day-restant{font-size:12px;font-weight:700;margin-top:2px;}
+    .day-solde-row{display:flex;gap:8px;align-items:center;}
+    .day-solde-label{font-size:11px;color:#4ade80;font-weight:600;letter-spacing:1px;text-transform:uppercase;flex-shrink:0;}
+    .day-solde-input{flex:1;background:#141414;border:1px solid #252525;border-radius:8px;padding:8px 10px;font-size:15px;font-weight:700;color:#f0f0f0;font-family:inherit;outline:none;text-align:right;}
+    .day-solde-input:focus{border-color:#4ade8044;}
+    .day-solde-input::placeholder{color:#333;font-size:13px;font-weight:400;}
+    .day-valider{background:#4ade80;color:#000;border:none;border-radius:8px;padding:8px 14px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;flex-shrink:0;}
+    /* Semaine solde fin */
     .week-solde-row{display:flex;gap:8px;margin-bottom:10px;align-items:stretch;}
-    .week-solde-label{flex:1;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:12px 14px;font-size:14px;font-weight:700;color:#4ade80;display:flex;align-items:center;justify-content:center;letter-spacing:1px;}
+    .week-solde-label{flex:1;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:12px 14px;font-size:13px;font-weight:700;color:#4ade80;display:flex;align-items:center;justify-content:center;letter-spacing:1px;text-align:center;}
     .week-solde-input{flex:1;background:#141414;border:1px solid #252525;border-radius:12px;padding:12px 14px;font-size:22px;font-weight:800;color:#f0f0f0;font-family:inherit;outline:none;text-align:right;width:0;}
     .week-solde-input:focus{border-color:#4ade8055;}
     .week-solde-input::placeholder{color:#333;font-size:15px;font-weight:400;}
     .week-btn-row{display:flex;gap:8px;}
     .btn-valider{flex:2;background:#4ade80;color:#000;border:none;border-radius:12px;padding:13px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;}
     .btn-reset-sem{flex:1;background:#1a1a1a;color:#ef4444;border:1px solid #2a1a1a;border-radius:12px;padding:13px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;}
+    /* Historique */
     .history-card{background:#0e0e0e;border-radius:18px;overflow:hidden;border:1px solid #171717;}
     .history-row{display:flex;justify-content:space-between;align-items:center;padding:13px 18px;border-bottom:1px solid #131313;}
     .history-row:last-child{border-bottom:none;}
@@ -160,7 +167,7 @@
   </div>
   <div class="budget-card" id="budget-card" style="display:none">
     <div>
-      <div class="budget-card-label">Budget / sem. pleine</div>
+      <div class="budget-card-label">Budget / jour</div>
       <div class="budget-card-val" id="budget-sem-val">—</div>
     </div>
     <div class="budget-card-right">
@@ -192,26 +199,26 @@ const TODAY=new Date();
 async function loadData(){
   try{
     const{data,error}=await sb.from('budget').select('key,value');
-    if(error){console.error('Supabase:',JSON.stringify(error));return;}
+    if(error){console.error('Supabase error:',JSON.stringify(error));return;}
     cache={};(data||[]).forEach(r=>{cache[r.key]=r.value;});
-  }catch(e){console.error('Load:',e.message);}
+  }catch(e){console.error('Load failed:',e.message);}
 }
 async function saveKey(key,value){
   cache[key]=value;
   try{
     const{error}=await sb.from('budget').upsert({key,value},{onConflict:'key'});
-    if(error)console.error('Save:',JSON.stringify(error));
-  }catch(e){console.error('Save:',e.message);}
+    if(error){console.error('Save error:',JSON.stringify(error));showFlash('Erreur sauvegarde',RED);}
+  }catch(e){console.error('Save failed:',e.message);}
 }
 async function deleteKey(key){
   delete cache[key];
   try{await sb.from('budget').delete().eq('key',key);}
-  catch(e){console.error('Del:',e.message);}
+  catch(e){console.error('Delete failed:',e.message);}
 }
 
 function fmt(n){return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n);}
 function monthName(y,m){return new Date(y,m,1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'});}
-function dowLabel(y,m,d){return JOURS_COURT[new Date(y,m,d).getDay()];}
+function dowCourt(y,m,d){return JOURS_COURT[new Date(y,m,d).getDay()];}
 
 function getWeekRanges(y,m){
   const total=new Date(y,m+1,0).getDate();
@@ -231,7 +238,7 @@ function curWeekIdx(y,m){
 function showFlash(msg,col){
   const el=document.getElementById('flash');
   el.textContent=msg;el.style.background=col||GREEN;el.style.color=col?'#fff':'#000';
-  el.style.display='block';setTimeout(()=>el.style.display='none',1600);
+  el.style.display='block';setTimeout(()=>el.style.display='none',1800);
 }
 function openModal(id){document.getElementById(id).classList.add('show');}
 function closeModal(id){document.getElementById(id).classList.remove('show');}
@@ -239,7 +246,6 @@ async function changeMonth(dir){
   mo+=dir;if(mo<0){mo=11;yr--;}if(mo>11){mo=0;yr++;}
   weeksBuilt=false;await loadData();render();
 }
-
 async function confirmResetMois(){
   closeModal('modal-reset-mois');
   await deleteKey(`${yr}-${mo}`);
@@ -253,11 +259,14 @@ async function confirmResetSem(){
   const ranges=getWeekRanges(yr,mo),n=ranges.length;
   const soldes=rec.soldes?.length===n?[...rec.soldes]:Array(n).fill(null);
   const budgetsInit=rec.budgetsInit?.length===n?[...rec.budgetsInit]:Array(n).fill(null);
+  const soldJours=rec.soldJours||{};
   soldes[resetSemIdx]=null;budgetsInit[resetSemIdx]=null;
-  rec.soldes=soldes;rec.budgetsInit=budgetsInit;
+  // Effacer les soldes journaliers de cette semaine
+  const ranges2=getWeekRanges(yr,mo);
+  const{start,end}=ranges2[resetSemIdx];
+  for(let d=start;d<=end;d++)delete soldJours[`${yr}-${mo}-${d}`];
+  rec.soldes=soldes;rec.budgetsInit=budgetsInit;rec.soldJours=soldJours;
   rec.semaines=soldesToSemaines(soldes,(rec.debut||0));
-  const inp=document.getElementById(`sinp-${resetSemIdx}`);
-  if(inp)inp.value='';
   await saveKey(key,rec);
   showFlash(`Semaine ${resetSemIdx+1} effacée ✓`);
   resetSemIdx=null;weeksBuilt=false;render();
@@ -275,7 +284,7 @@ function soldesToSemaines(soldes,debutBase){
 async function saveDebut(){
   const v=parseFloat(document.getElementById('input-debut').value);if(isNaN(v))return;
   const key=`${yr}-${mo}`;const ranges=getWeekRanges(yr,mo),n=ranges.length;
-  const rec={...(cache[key]||{}),debut:v,soldes:Array(n).fill(null),semaines:Array(n).fill(null),budgetsInit:Array(n).fill(null)};
+  const rec={...(cache[key]||{}),debut:v,soldes:Array(n).fill(null),semaines:Array(n).fill(null),budgetsInit:Array(n).fill(null),soldJours:{}};
   await saveKey(key,rec);
   document.getElementById('input-debut').value='';
   weeksBuilt=false;showFlash('Départ enregistré ✓');render();
@@ -310,36 +319,73 @@ function calcBudget(rec,ranges){
   return{semaines,weekDays,debutBase,objectif,depSaisie,soldeCour,margeRest,budgetJour,budgetSems,soldeEst,marge,pctDep,onTrack};
 }
 
-// Génère le détail des jours pour la semaine active
-function buildDaysGrid(weekStart,weekEnd,budgetSem,soldeDebutSem){
-  const totalDays=weekEnd-weekStart+1;
-  const budgetParJour=totalDays>0?budgetSem/totalDays:0;
-  const todayDate=TODAY.getDate();
-  const isCurrentMonth=TODAY.getFullYear()===yr&&TODAY.getMonth()===mo;
-  let html='<div class="days-grid">';
-  for(let d=weekStart;d<=weekEnd;d++){
-    const dow=new Date(yr,mo,d).getDay();
-    const nomJour=JOURS_LONG[dow];
-    const isToday=isCurrentMonth&&d===todayDate;
-    const isPast=isCurrentMonth&&d<todayDate;
-    // Jours restants depuis ce jour jusqu'à fin de semaine
-    const joursDepuisAujourdhui=isCurrentMonth?Math.max(0,weekEnd-Math.max(d,todayDate)+1):totalDays;
-    // Budget journalier = budget restant / jours restants
-    const joursRestantsSem=isCurrentMonth?Math.max(1,weekEnd-todayDate+1):totalDays;
-    const budgetJourRestant=Math.floor(budgetSem/joursRestantsSem);
-    const cls=isToday?'today':isPast?'past':'';
-    html+=`<div class="day-row ${cls}">
-      <div>
-        <div class="day-label">${nomJour} ${d}</div>
-      </div>
-      <div>
-        <div class="day-budget">${isToday||(!isPast&&!isToday)?fmt(budgetJourRestant):'—'}</div>
-        <div class="day-budget-sub">${isToday?'· aujourd\'hui':isPast?'passé':'budget/j'}</div>
-      </div>
-    </div>`;
+// Valider solde journalier
+async function validerJour(d){
+  const inp=document.getElementById(`dinp-${d}`);
+  const val=parseFloat(inp.value);
+  if(isNaN(val)){showFlash('Entrez un solde',RED);return;}
+  const key=`${yr}-${mo}`;
+  const rec={...(cache[key]||{})};
+  const soldJours={...(rec.soldJours||{})};
+  soldJours[`${yr}-${mo}-${d}`]=val;
+  rec.soldJours=soldJours;
+  await saveKey(key,rec);
+  showFlash(`Jour ${d} enregistré ✓`);
+  // Mettre à jour l'affichage du jour
+  updateDayDisplay(d,val,rec);
+}
+
+function updateDayDisplay(d,solde,rec){
+  const restEl=document.getElementById(`drest-${d}`);
+  const ranges=getWeekRanges(yr,mo);
+  const{budgetJour,semaines,debutBase,objectif}=calcBudget(rec,ranges);
+  if(!restEl||!budgetJour)return;
+  // Trouver la semaine de ce jour
+  const weekIdx=ranges.findIndex(r=>d>=r.start&&d<=r.end);
+  if(weekIdx===-1)return;
+  const weekDays=ranges.map(r=>r.end-r.start+1);
+  // Solde avant ce jour
+  const depSemAvant=semaines.slice(0,weekIdx).reduce((s,v)=>s+(v??0),0);
+  const soldJours=rec.soldJours||{};
+  // Trouver le dernier solde connu avant ce jour dans la semaine
+  let soldePrev=debutBase-depSemAvant;
+  const{start}=ranges[weekIdx];
+  for(let dd=start;dd<d;dd++){
+    const k=`${yr}-${mo}-${dd}`;
+    if(soldJours[k]!==undefined)soldePrev=soldJours[k];
   }
-  html+='</div>';
-  return html;
+  const dep=Math.max(0,soldePrev-solde);
+  const restant=budgetJour-dep;
+  const ok=restant>=0;
+  restEl.textContent=(ok?'Restant ':'-')+fmt(Math.abs(restant));
+  restEl.style.color=ok?GREEN:RED;
+}
+
+function onDayInput(d){
+  const inp=document.getElementById(`dinp-${d}`);
+  const val=parseFloat(inp.value);
+  const restEl=document.getElementById(`drest-${d}`);
+  if(!restEl)return;
+  if(isNaN(val)){restEl.textContent='';return;}
+  const key=`${yr}-${mo}`;const rec=cache[key]||{};
+  const ranges=getWeekRanges(yr,mo);
+  const{budgetJour,semaines,debutBase}=calcBudget(rec,ranges);
+  if(!budgetJour){restEl.textContent='';return;}
+  const weekIdx=ranges.findIndex(r=>d>=r.start&&d<=r.end);
+  if(weekIdx===-1)return;
+  const depSemAvant=semaines.slice(0,weekIdx).reduce((s,v)=>s+(v??0),0);
+  const soldJours=rec.soldJours||{};
+  let soldePrev=debutBase-depSemAvant;
+  const{start}=ranges[weekIdx];
+  for(let dd=start;dd<d;dd++){
+    const k=`${yr}-${mo}-${dd}`;
+    if(soldJours[k]!==undefined)soldePrev=soldJours[k];
+  }
+  const dep=Math.max(0,soldePrev-val);
+  const restant=budgetJour-dep;
+  const ok=restant>=0;
+  restEl.textContent=(ok?'Restant ':'-')+fmt(Math.abs(restant));
+  restEl.style.color=ok?GREEN:RED;
 }
 
 function onWeekInput(i){
@@ -372,7 +418,7 @@ function onWeekInput(i){
 async function validerSem(i){
   const inp=document.getElementById(`sinp-${i}`);
   const val=parseFloat(inp.value);
-  if(isNaN(val)){showFlash('Entrez un solde actuel',RED);return;}
+  if(isNaN(val)){showFlash('Entrez un solde de fin de semaine',RED);return;}
   const key=`${yr}-${mo}`;const ranges=getWeekRanges(yr,mo),n=ranges.length;
   const rec={...(cache[key]||{})};
   const debutBase=rec.debut||0;
@@ -380,8 +426,7 @@ async function validerSem(i){
   const objectif=rec.objectif??null;
   const soldes=rec.soldes?.length===n?[...rec.soldes]:Array(n).fill(null);
   const budgetsInit=rec.budgetsInit?.length===n?[...rec.budgetsInit]:Array(n).fill(null);
-  soldes[i]=val;
-  rec.soldes=soldes;
+  soldes[i]=val;rec.soldes=soldes;
   rec.semaines=soldesToSemaines(soldes,debutBase);
   if(budgetsInit[i]===null){
     const joursRestAvant=ranges.slice(i).reduce((s,_,j)=>s+weekDays[i+j],0);
@@ -441,38 +486,30 @@ function updateData(){
   const bc=document.getElementById('budget-card');
   if(budgetJour!==null){
     bc.style.display='flex';
-    document.getElementById('budget-sem-val').textContent=fmt(Math.floor(budgetJour*7));
+    document.getElementById('budget-sem-val').textContent=fmt(Math.floor(budgetJour));
     document.getElementById('budget-reste').textContent=fmt(margeRest);
   }else bc.style.display='none';
   const soldes=rec.soldes||[];
   const budgetsInit=rec.budgetsInit||[];
   ranges.forEach((_,i)=>{
-    const maxB=budgetSems[i];
-    const v=semaines[i];
+    const maxB=budgetSems[i];const v=semaines[i];
     const over=v!==null&&maxB!==null?v>maxB:false;
     const dotEl=document.getElementById(`wdot-${i}`);
     const barWrap=document.getElementById(`wbar-${i}`);
     if(dotEl)dotEl.style.background=v!==null?(over?ORANGE:GREEN):(cw===i?'#3a3a3a':'#1e1e1e');
     if(barWrap){
-      if(v!==null&&maxB!==null){
-        barWrap.style.display='block';
-        const bar=barWrap.querySelector('div');
-        if(bar){bar.style.width=Math.min(100,Math.round(v/maxB*100))+'%';bar.style.background=over?ORANGE:GREEN;}
-      }else barWrap.style.display='none';
+      if(v!==null&&maxB!==null){barWrap.style.display='block';const bar=barWrap.querySelector('div');if(bar){bar.style.width=Math.min(100,Math.round(v/maxB*100))+'%';bar.style.background=over?ORANGE:GREEN;}}
+      else barWrap.style.display='none';
     }
     if(soldes[i]!=null&&budgetsInit[i]!=null){
-      const dep=v??0;
-      const restant=budgetsInit[i]-dep;
+      const dep=v??0;const restant=budgetsInit[i]-dep;
       updatePostValidation(i,budgetsInit[i],dep,restant,restant>=0);
       const inp=document.getElementById(`sinp-${i}`);
       if(inp&&inp.value==='')inp.value=soldes[i];
     }else{
       const rightEl=document.getElementById(`wright-${i}`);
       if(rightEl&&maxB!==null){
-        rightEl.innerHTML=`
-          <div class="week-budget-init">${fmt(maxB)}</div>
-          <div class="week-budget-sub">budget sem.</div>
-          <div id="wlive-${i}" class="week-live"></div>`;
+        rightEl.innerHTML=`<div class="week-budget-init">${fmt(maxB)}</div><div class="week-budget-sub">budget sem.</div><div id="wlive-${i}" class="week-live"></div>`;
       }
     }
   });
@@ -500,13 +537,16 @@ function buildWeeks(){
   const semaines=rec.semaines?.length===n?rec.semaines:Array(n).fill(null);
   const soldes=rec.soldes?.length===n?rec.soldes:Array(n).fill(null);
   const budgetsInit=rec.budgetsInit?.length===n?rec.budgetsInit:Array(n).fill(null);
+  const soldJours=rec.soldJours||{};
   const weekDays=ranges.map(r=>r.end-r.start+1);
   const cw=curWeekIdx(yr,mo);
-  const{budgetSems,debutBase}=calcBudget(rec,ranges);
+  const{budgetSems,budgetJour,debutBase}=calcBudget(rec,ranges);
   const secSem=document.getElementById('semaines-section');
   if(rec.debut==null){secSem.style.display='none';return;}
   secSem.style.display='block';
   const list=document.getElementById('semaines-list');list.innerHTML='';
+  const todayDate=TODAY.getDate();
+  const isCurrentMonth=TODAY.getFullYear()===yr&&TODAY.getMonth()===mo;
 
   ranges.forEach(({start,end},i)=>{
     const isCur=cw===i,isPast=i<cw&&cw!==-1,isFut=i>cw&&cw!==-1;
@@ -515,25 +555,65 @@ function buildWeeks(){
     const dotCol=v!==null?(over?ORANGE:GREEN):(isCur?'#3a3a3a':'#1e1e1e');
     const nameCol=isCur?GREEN:(isPast?'#383838':'#333');
     const validated=soldes[i]!==null&&budgetsInit[i]!==null;
-    const dep=v??0;
-    const budInit=budgetsInit[i]??0;
-    const restant=budInit-dep;
-    const ok=restant>=0;
+    const dep=v??0;const budInit=budgetsInit[i]??0;
+    const restant=budInit-dep;const ok=restant>=0;
 
     const rightHtml=validated
-      ?`<div class="week-post-init">${fmt(budInit)}</div>
-        <div class="week-post-dep" style="color:#666">${fmt(dep)} dépensé sur ${fmt(budInit)}</div>
-        <div class="week-post-rest" style="color:${ok?GREEN:RED}">${ok?'Restant '+fmt(restant):'-'+fmt(Math.abs(restant))}</div>`
-      :`<div class="week-budget-init">${maxB!==null?fmt(maxB):'—'}</div>
-        <div class="week-budget-sub">budget sem.</div>
-        <div id="wlive-${i}" class="week-live"></div>`;
+      ?`<div class="week-post-init">${fmt(budInit)}</div><div class="week-post-dep" style="color:#666">${fmt(dep)} dépensé sur ${fmt(budInit)}</div><div class="week-post-rest" style="color:${ok?GREEN:RED}">${ok?'Restant '+fmt(restant):'-'+fmt(Math.abs(restant))}</div>`
+      :`<div class="week-budget-init">${maxB!==null?fmt(maxB):'—'}</div><div class="week-budget-sub">budget sem.</div><div id="wlive-${i}" class="week-live"></div>`;
 
-    // Solde avant cette semaine
-    const depAvant=semaines.slice(0,i).reduce((s,x)=>s+(x??0),0);
-    const soldeDebutSem=debutBase-depAvant;
+    // Détail journalier pour semaine active
+    let daysHtml='';
+    if(isCur&&budgetJour!==null){
+      daysHtml='<div style="margin-bottom:12px">';
+      // Solde avant cette semaine
+      const depSemAvant=semaines.slice(0,i).reduce((s,x)=>s+(x??0),0);
+      let soldePrevDay=debutBase-depSemAvant;
 
-    // Détail journalier pour semaine active uniquement
-    const daysHtml=isCur&&maxB!==null?buildDaysGrid(start,end,maxB,soldeDebutSem):'';
+      for(let d=start;d<=end;d++){
+        const dow=new Date(yr,mo,d).getDay();
+        const nomJour=JOURS_LONG[dow];
+        const isToday=isCurrentMonth&&d===todayDate;
+        const isPastDay=isCurrentMonth&&d<todayDate;
+        const isFutureDay=!isToday&&!isPastDay;
+        const soldJourKey=`${yr}-${mo}-${d}`;
+        const soldJourVal=soldJours[soldJourKey];
+        // Budget restant pour ce jour
+        const budJour=Math.floor(budgetJour);
+        // Restant si solde saisi
+        let restantJour=null;
+        if(soldJourVal!==undefined){
+          const depJour=Math.max(0,soldePrevDay-soldJourVal);
+          restantJour=budJour-depJour;
+          soldePrevDay=soldJourVal;
+        }
+        const cls=isToday?'today':isPastDay?'past':'';
+        const restantHtml=restantJour!==null
+          ?`<div class="day-restant" style="color:${restantJour>=0?GREEN:RED}">${restantJour>=0?'Restant '+fmt(restantJour):'-'+fmt(Math.abs(restantJour))}</div>`
+          :`<div id="drest-${d}" class="day-restant"></div>`;
+
+        daysHtml+=`<div class="day-card ${cls}">
+          <div class="day-header">
+            <div class="day-label ${cls}">${nomJour} ${d}${isToday?' · Aujourd\'hui':''}</div>
+            <div class="day-right">
+              <div class="day-budget">${fmt(budJour)} / jour</div>
+              ${restantHtml}
+            </div>
+          </div>
+          <div class="day-solde-row">
+            <div class="day-solde-label">Solde</div>
+            <input id="dinp-${d}" type="number" inputmode="decimal"
+              class="day-solde-input"
+              placeholder="Solde actuel €"
+              value="${soldJourVal!==undefined?soldJourVal:''}"
+              oninput="onDayInput(${d})"
+              onkeydown="if(event.key==='Enter')validerJour(${d})" />
+            <button class="day-valider" onclick="validerJour(${d})">✓</button>
+          </div>
+        </div>`;
+      }
+      daysHtml+='</div>';
+    }
 
     const card=document.createElement('div');
     card.className='week-card'+(isCur?' current':'')+(isFut?' future':'');
@@ -544,7 +624,7 @@ function buildWeeks(){
             <div id="wdot-${i}" class="week-dot" style="background:${dotCol}"></div>
             <span class="week-name" style="color:${nameCol}">Semaine ${i+1}${isCur?' · en cours':isPast?' · passée':''}</span>
           </div>
-          <div class="week-dates">${dowLabel(yr,mo,start)} ${start} → ${dowLabel(yr,mo,end)} ${end} · ${nj}j</div>
+          <div class="week-dates">${dowCourt(yr,mo,start)} ${start} → ${dowCourt(yr,mo,end)} ${end} · ${nj}j</div>
         </div>
         <div id="wright-${i}" class="week-right">${rightHtml}</div>
       </div>
@@ -553,16 +633,16 @@ function buildWeeks(){
       </div>
       ${daysHtml}
       <div class="week-solde-row">
-        <div class="week-solde-label">Solde Actuel</div>
+        <div class="week-solde-label">Solde fin de semaine</div>
         <input id="sinp-${i}" type="number" inputmode="decimal"
           class="week-solde-input"
-          placeholder="Tapez solde €"
+          placeholder="Solde €"
           value="${soldes[i]!==null?soldes[i]:''}"
           oninput="onWeekInput(${i})"
           onkeydown="if(event.key==='Enter')validerSem(${i})" />
       </div>
       <div class="week-btn-row">
-        <button class="btn-valider" onclick="validerSem(${i})">✓ Valider</button>
+        <button class="btn-valider" onclick="validerSem(${i})">✓ Valider sem.</button>
         <button class="btn-reset-sem" onclick="openResetSem(${i})">↺ Reset</button>
       </div>`;
     list.appendChild(card);
