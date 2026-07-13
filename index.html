@@ -66,13 +66,8 @@
     .week-right{text-align:right;}
     .week-budget-init{font-size:22px;font-weight:700;color:#4ade80;}
     .week-budget-sub{font-size:11px;color:#555;margin-top:1px;}
-    .week-live{font-size:13px;font-weight:700;margin-top:4px;min-height:16px;}
-    .week-post-init{font-size:20px;font-weight:800;color:#4ade80;}
-    .week-post-dep{font-size:12px;color:#888;margin-top:3px;}
-    .week-post-rest{font-size:14px;font-weight:700;margin-top:2px;}
     .week-mini-bar-bg{background:#141414;border-radius:6px;height:4px;overflow:hidden;margin-bottom:12px;}
     .week-mini-bar{height:100%;border-radius:6px;}
-    /* Day cards — overflow hidden pour que rien ne dépasse */
     .day-card{background:#0a0a0a;border-radius:12px;padding:12px 12px;margin-bottom:8px;border:1px solid #141414;overflow:hidden;}
     .day-card.today{background:#0a140a;border-color:#4ade8033;}
     .day-card.past{opacity:0.4;}
@@ -82,7 +77,6 @@
     .day-right{text-align:right;}
     .day-budget{font-size:15px;font-weight:700;color:#f0f0f0;}
     .day-restant{font-size:12px;font-weight:700;margin-top:2px;}
-    /* Ligne de saisie jour : label + input + boutons tous dans le même conteneur */
     .day-solde-row{display:flex;align-items:center;gap:6px;width:100%;}
     .day-solde-label{font-size:11px;color:#4ade80;font-weight:600;letter-spacing:1px;text-transform:uppercase;flex-shrink:0;width:44px;}
     .day-solde-input{flex:1;min-width:0;background:#141414;border:1px solid #252525;border-radius:8px;padding:7px 8px;font-size:15px;font-weight:700;color:#f0f0f0;font-family:inherit;outline:none;text-align:right;}
@@ -98,14 +92,6 @@
     .week-btn-row{display:flex;gap:8px;}
     .btn-valider{flex:2;background:#4ade80;color:#000;border:none;border-radius:12px;padding:13px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;}
     .btn-reset-sem{flex:1;background:#1a1a1a;color:#ef4444;border:1px solid #2a1a1a;border-radius:12px;padding:13px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;}
-    .history-card{background:#0e0e0e;border-radius:18px;overflow:hidden;border:1px solid #171717;}
-    .history-row{display:flex;justify-content:space-between;align-items:center;padding:13px 18px;border-bottom:1px solid #131313;}
-    .history-row:last-child{border-bottom:none;}
-    .history-month{font-size:13px;color:#484848;text-transform:capitalize;}
-    .history-obj{font-size:11px;color:#252525;margin-top:2px;}
-    .history-right{display:flex;align-items:center;gap:8px;}
-    .history-dot{width:6px;height:6px;border-radius:50%;}
-    .history-amount{font-size:15px;font-weight:700;}
   </style>
 </head>
 <body>
@@ -170,7 +156,7 @@
       <div class="budget-card-val" id="budget-jour-val">—</div>
     </div>
     <div class="budget-card-right">
-      <div class="budget-card-label">Reste à dépenser</div>
+      <div class="budget-card-label">Marge totale</div>
       <div class="budget-card-sub" id="budget-reste">—</div>
     </div>
   </div>
@@ -180,7 +166,6 @@
   <div class="section-title">Semaines</div>
   <div id="semaines-list"></div>
 </div>
-
 <script>
 const SUPABASE_URL = 'https://qwkovamgfsedcpytrimb.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_CZi-2FMtg6Czewv5st-_Gg_FqotSkCZ';
@@ -220,9 +205,7 @@ async function deleteKey(key) {
 function fmt(n) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
 }
-function monthName(y, m) {
-  return new Date(y, m, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-}
+function monthName(y, m) { return new Date(y, m, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }); }
 function dowCourt(y, m, d) { return JOURS_COURT[new Date(y, m, d).getDay()]; }
 
 function getWeekRanges(y, m) {
@@ -244,29 +227,20 @@ function curWeekIdx(y, m) {
 
 function showFlash(msg, col) {
   const el = document.getElementById('flash');
-  el.textContent = msg;
-  el.style.background = col || GREEN;
-  el.style.color = col ? '#fff' : '#000';
-  el.style.display = 'block';
-  setTimeout(function() { el.style.display = 'none'; }, 1800);
+  el.textContent = msg; el.style.background = col || GREEN; el.style.color = col ? '#fff' : '#000';
+  el.style.display = 'block'; setTimeout(function() { el.style.display = 'none'; }, 1800);
 }
 
 function openModal(id) { document.getElementById(id).classList.add('show'); }
 function closeModal(id) { document.getElementById(id).classList.remove('show'); }
 
 async function changeMonth(dir) {
-  mo += dir;
-  if (mo < 0) { mo = 11; yr--; }
-  if (mo > 11) { mo = 0; yr++; }
-  await loadData();
-  render();
+  mo += dir; if (mo < 0) { mo = 11; yr--; } if (mo > 11) { mo = 0; yr++; }
+  await loadData(); render();
 }
 
 async function confirmResetMois() {
-  closeModal('modal-reset-mois');
-  await deleteKey(yr + '-' + mo);
-  showFlash('Mois remis à zéro ✓');
-  render();
+  closeModal('modal-reset-mois'); await deleteKey(yr + '-' + mo); showFlash('Mois remis à zéro ✓'); render();
 }
 
 function openResetSem(i) { resetSemIdx = i; openModal('modal-reset-sem'); }
@@ -278,103 +252,59 @@ async function confirmResetSem() {
   const rec = Object.assign({}, cache[key] || {});
   const ranges = getWeekRanges(yr, mo);
   const n = ranges.length;
-  const soldes = rec.soldes && rec.soldes.length === n ? rec.soldes.slice() : Array(n).fill(null);
   const budgetsInit = rec.budgetsInit && rec.budgetsInit.length === n ? rec.budgetsInit.slice() : Array(n).fill(null);
   const soldJours = Object.assign({}, rec.soldJours || {});
-  soldes[resetSemIdx] = null;
   budgetsInit[resetSemIdx] = null;
   const rng = ranges[resetSemIdx];
   for (let d = rng.start; d <= rng.end; d++) delete soldJours[yr + '-' + mo + '-' + d];
-  rec.soldes = soldes;
   rec.budgetsInit = budgetsInit;
   rec.soldJours = soldJours;
-  rec.semaines = soldesToSemaines(soldes, rec.debut || 0);
   await saveKey(key, rec);
   showFlash('Semaine ' + (resetSemIdx + 1) + ' effacée ✓');
-  resetSemIdx = null;
-  render();
-}
-
-function soldesToSemaines(soldes, debutBase) {
-  const sems = Array(soldes.length).fill(null);
-  let prev = debutBase;
-  for (let i = 0; i < soldes.length; i++) {
-    if (soldes[i] !== null) { sems[i] = Math.max(0, prev - soldes[i]); prev = soldes[i]; }
-  }
-  return sems;
+  resetSemIdx = null; render();
 }
 
 async function saveDebut() {
-  const v = parseFloat(document.getElementById('input-debut').value);
-  if (isNaN(v)) return;
+  const v = parseFloat(document.getElementById('input-debut').value); if (isNaN(v)) return;
   const key = yr + '-' + mo;
-  const ranges = getWeekRanges(yr, mo);
-  const n = ranges.length;
-  const rec = Object.assign({}, cache[key] || {}, {
-    debut: v, soldes: Array(n).fill(null),
-    semaines: Array(n).fill(null), budgetsInit: Array(n).fill(null), soldJours: {}
-  });
+  const ranges = getWeekRanges(yr, mo); const n = ranges.length;
+  const rec = Object.assign({}, cache[key] || {}, { debut: v, budgetsInit: Array(n).fill(null), soldJours: {} });
   await saveKey(key, rec);
-  document.getElementById('input-debut').value = '';
-  showFlash('Départ enregistré ✓');
-  render();
+  document.getElementById('input-debut').value = ''; showFlash('Départ enregistré ✓'); render();
 }
 
 async function saveObjectif() {
-  const v = parseFloat(document.getElementById('input-objectif').value);
-  if (isNaN(v)) return;
+  const v = parseFloat(document.getElementById('input-objectif').value); if (isNaN(v)) return;
   const key = yr + '-' + mo;
   await saveKey(key, Object.assign({}, cache[key] || {}, { objectif: v }));
-  document.getElementById('input-objectif').value = '';
-  showFlash('Objectif enregistré ✓');
-  render();
+  document.getElementById('input-objectif').value = ''; showFlash('Objectif enregistré ✓'); render();
 }
 
-function calcBudget(rec, ranges) {
-  const weekDays = ranges.map(function(r) { return r.end - r.start + 1; });
-  const n = ranges.length;
-  const semaines = rec.semaines && rec.semaines.length === n ? rec.semaines : Array(n).fill(null);
-  const debutBase = rec.debut || 0;
-  const objectif = rec.objectif != null ? rec.objectif : 0;
-  const soldJours = rec.soldJours || {};
-  const totalDaysInMonth = new Date(yr, mo + 1, 0).getDate();
-  const todayD = TODAY.getDate();
-  const isCurrentMonth = TODAY.getFullYear() === yr && TODAY.getMonth() === mo;
-
-  // Trouver le dernier solde journalier saisi (tous mois confondus)
-  let dernierSolde = debutBase;
+// Trouver le dernier solde saisi avant le début d'une semaine
+function getSoldeAvantSemaine(soldJours, debutBase, weekStart) {
+  let solde = debutBase;
   let dernierJour = 0;
   Object.keys(soldJours).forEach(function(k) {
     const parts = k.split('-');
     const d = parseInt(parts[2]);
-    if (d > dernierJour) { dernierJour = d; dernierSolde = soldJours[k]; }
+    if (d < weekStart && d > dernierJour) { dernierJour = d; solde = soldJours[k]; }
   });
+  return solde;
+}
 
-  // Budget/jour = (dernier solde - objectif) / jours restants depuis dernier jour saisi
-  const joursRestants = dernierJour > 0 ? totalDaysInMonth - dernierJour : (isCurrentMonth ? totalDaysInMonth - todayD + 1 : totalDaysInMonth);
-  const margeRest = Math.max(0, dernierSolde - objectif);
-  const budgetJour = joursRestants > 0 ? margeRest / joursRestants : null;
-
-  // Budget par semaine basé sur jours restants de chaque semaine
-  const budgetSems = ranges.map(function(r, i) {
-    if (semaines[i] !== null) return semaines[i];
-    if (budgetJour !== null) return Math.floor(budgetJour * weekDays[i]);
-    return null;
+// Trouver le dernier solde saisi tous jours confondus
+function getDernierSolde(soldJours, debutBase) {
+  let solde = debutBase; let dernierJour = 0;
+  Object.keys(soldJours).forEach(function(k) {
+    const parts = k.split('-');
+    const d = parseInt(parts[2]);
+    if (d > dernierJour) { dernierJour = d; solde = soldJours[k]; }
   });
-
-  const depSaisie = semaines.reduce(function(s, v) { return s + (v || 0); }, 0);
-  const soldeCour = debutBase - depSaisie;
-  const marge = debutBase - objectif;
-  const pctDep = marge > 0 ? Math.min(100, Math.round((debutBase - dernierSolde) / marge * 100)) : 0;
-  const onTrack = dernierSolde >= objectif;
-  const soldeEst = dernierSolde; // Le dernier solde connu est notre meilleure estimation
-
-  return { semaines: semaines, weekDays: weekDays, debutBase: debutBase, objectif: objectif, depSaisie: depSaisie, soldeCour: soldeCour, margeRest: margeRest, budgetJour: budgetJour, budgetSems: budgetSems, soldeEst: soldeEst, marge: marge, pctDep: pctDep, onTrack: onTrack, dernierSolde: dernierSolde, dernierJour: dernierJour };
+  return { solde: solde, jour: dernierJour };
 }
 
 async function validerJour(d) {
-  const inp = document.getElementById('dinp-' + d);
-  const val = parseFloat(inp.value);
+  const inp = document.getElementById('dinp-' + d); const val = parseFloat(inp.value);
   if (isNaN(val)) { showFlash('Entrez un solde', RED); return; }
   const key = yr + '-' + mo;
   const rec = Object.assign({}, cache[key] || {});
@@ -382,8 +312,7 @@ async function validerJour(d) {
   soldJours[yr + '-' + mo + '-' + d] = val;
   rec.soldJours = soldJours;
   await saveKey(key, rec);
-  showFlash('Jour ' + d + ' enregistré ✓');
-  render(); // Toujours reconstruire
+  showFlash('Jour ' + d + ' enregistré ✓'); render();
 }
 
 async function effacerJour(d) {
@@ -393,36 +322,42 @@ async function effacerJour(d) {
   delete soldJours[yr + '-' + mo + '-' + d];
   rec.soldJours = soldJours;
   await saveKey(key, rec);
-  showFlash('Jour ' + d + ' effacé ✓');
-  render(); // Toujours reconstruire
+  showFlash('Jour ' + d + ' effacé ✓'); render();
+}
+
+async function validerSem(i) {
+  const inp = document.getElementById('sinp-' + i); const val = parseFloat(inp.value);
+  if (isNaN(val)) { showFlash('Entrez un solde', RED); return; }
+  const key = yr + '-' + mo;
+  const ranges = getWeekRanges(yr, mo);
+  const rec = Object.assign({}, cache[key] || {});
+  const soldJours = Object.assign({}, rec.soldJours || {});
+  // Enregistrer comme solde du dernier jour de la semaine
+  const dernierJourSem = ranges[i].end;
+  soldJours[yr + '-' + mo + '-' + dernierJourSem] = val;
+  rec.soldJours = soldJours;
+  await saveKey(key, rec);
+  showFlash('Solde fin semaine ' + (i + 1) + ' enregistré ✓'); render();
 }
 
 function onDayInput(d) {
-  const inp = document.getElementById('dinp-' + d);
-  const val = parseFloat(inp.value);
+  const inp = document.getElementById('dinp-' + d); const val = parseFloat(inp.value);
   const restEl = document.getElementById('drest-' + d);
   if (!restEl) return;
   if (isNaN(val)) { restEl.textContent = ''; return; }
-  const key = yr + '-' + mo;
-  const rec = cache[key] || {};
-  const ranges = getWeekRanges(yr, mo);
-  const calc = calcBudget(rec, ranges);
-  if (!calc.budgetJour) { restEl.textContent = ''; return; }
-  const weekIdx = ranges.findIndex(function(r) { return d >= r.start && d <= r.end; });
-  if (weekIdx === -1) return;
-  const depSemAvant = calc.semaines.slice(0, weekIdx).reduce(function(s, x) { return s + (x || 0); }, 0);
+  const key = yr + '-' + mo; const rec = cache[key] || {};
   const soldJours = rec.soldJours || {};
-  let soldePrev = calc.debutBase - depSemAvant;
-  const start = ranges[weekIdx].start;
-  const end = ranges[weekIdx].end;
-  for (let dd = start; dd < d; dd++) {
-    const k = yr + '-' + mo + '-' + dd;
-    if (soldJours[k] !== undefined) soldePrev = soldJours[k];
-  }
-  // Budget/jour = solde précédent / jours restants dans le mois
+  const debutBase = rec.debut || 0;
+  const objectif = rec.objectif || 0;
   const totalDaysInMonth = new Date(yr, mo + 1, 0).getDate();
-  const joursRestantsMois = totalDaysInMonth - d + 1;
-  const budJour = joursRestantsMois > 0 ? Math.floor(soldePrev / joursRestantsMois) : 0;
+  // Trouver le solde précédent (dernier solde saisi avant ce jour)
+  let soldePrev = debutBase; let dernierAvant = 0;
+  Object.keys(soldJours).forEach(function(k) {
+    const parts = k.split('-'); const dd = parseInt(parts[2]);
+    if (dd < d && dd > dernierAvant) { dernierAvant = dd; soldePrev = soldJours[k]; }
+  });
+  const joursRestants = totalDaysInMonth - d;
+  const budJour = joursRestants > 0 ? Math.floor(Math.max(0, soldePrev - objectif) / joursRestants) : 0;
   const dep = Math.max(0, soldePrev - val);
   const restant = budJour - dep;
   const ok = restant >= 0;
@@ -430,233 +365,192 @@ function onDayInput(d) {
   restEl.style.color = ok ? GREEN : RED;
 }
 
-function onWeekInput(i) {
-  const inp = document.getElementById('sinp-' + i);
-  const val = parseFloat(inp.value);
-  const liveEl = document.getElementById('wlive-' + i);
-  if (!liveEl) return;
-  if (isNaN(val)) { liveEl.textContent = ''; return; }
-  const key = yr + '-' + mo;
-  const rec = cache[key] || {};
-  const ranges = getWeekRanges(yr, mo);
-  const calc = calcBudget(rec, ranges);
-  const depAvant = calc.semaines.slice(0, i).reduce(function(s, x) { return s + (x || 0); }, 0);
-  const soldeAvantSem = calc.debutBase - depAvant;
-  const depenses = Math.max(0, soldeAvantSem - val);
-  const budgetSem = calc.budgetSems[i] || 0;
-  const restant = budgetSem - depenses;
-  const ok = restant >= 0;
-  liveEl.textContent = (ok ? 'Restant ' : '-') + fmt(Math.abs(restant));
-  liveEl.style.color = ok ? GREEN : RED;
-}
-
-async function validerSem(i) {
-  const inp = document.getElementById('sinp-' + i);
-  const val = parseFloat(inp.value);
-  if (isNaN(val)) { showFlash('Entrez un solde de fin de semaine', RED); return; }
-  const key = yr + '-' + mo;
-  const ranges = getWeekRanges(yr, mo);
-  const rec = Object.assign({}, cache[key] || {});
-  // Enregistrer comme solde du dernier jour de la semaine (dimanche)
-  const dernierJourSem = ranges[i].end;
-  const soldJours = Object.assign({}, rec.soldJours || {});
-  soldJours[yr + '-' + mo + '-' + dernierJourSem] = val;
-  rec.soldJours = soldJours;
-  await saveKey(key, rec);
-  showFlash('Solde fin semaine ' + (i + 1) + ' enregistré ✓');
-  render();
-}
-
 function render() {
-  const key = yr + '-' + mo;
-  const rec = cache[key] || {};
-  const ranges = getWeekRanges(yr, mo);
-  const n = ranges.length;
-  const calc = calcBudget(rec, ranges);
-  const soldes = rec.soldes && rec.soldes.length === n ? rec.soldes : Array(n).fill(null);
-  const budgetsInit = rec.budgetsInit && rec.budgetsInit.length === n ? rec.budgetsInit : Array(n).fill(null);
+  const key = yr + '-' + mo; const rec = cache[key] || {};
+  const ranges = getWeekRanges(yr, mo); const n = ranges.length;
   const soldJours = rec.soldJours || {};
+  const debutBase = rec.debut || 0;
+  const objectif = rec.objectif || 0;
+  const totalDaysInMonth = new Date(yr, mo + 1, 0).getDate();
   const cw = curWeekIdx(yr, mo);
   const isCurrentMonth = TODAY.getFullYear() === yr && TODAY.getMonth() === mo;
   const todayDate = TODAY.getDate();
-  const accent = calc.onTrack === null ? '#3a3a3a' : calc.onTrack ? GREEN : ORANGE;
+  let budgetsInit = rec.budgetsInit && rec.budgetsInit.length === n ? rec.budgetsInit.slice() : Array(n).fill(null);
+
+  // Dernier solde global
+  const ds = getDernierSolde(soldJours, debutBase);
+  const dernierSolde = ds.solde; const dernierJour = ds.jour;
+  const joursRestantsGlobal = dernierJour > 0 ? totalDaysInMonth - dernierJour : (isCurrentMonth ? totalDaysInMonth - todayDate + 1 : totalDaysInMonth);
+  const margeGlobale = Math.max(0, dernierSolde - objectif);
+  const budgetJourGlobal = joursRestantsGlobal > 0 ? margeGlobale / joursRestantsGlobal : null;
+  const marge = debutBase - objectif;
+
+  // Pour chaque semaine : figer le budget au début si pas encore figé
+  let needsSave = false;
+  ranges.forEach(function(rng, i) {
+    if (budgetsInit[i] === null) {
+      // Semaine passée ou en cours : calculer et figer
+      if (i <= cw || cw === -1) {
+        const soldeAvant = getSoldeAvantSemaine(soldJours, debutBase, rng.start);
+        const joursRestants = totalDaysInMonth - rng.start + 1;
+        const marg = Math.max(0, soldeAvant - objectif);
+        budgetsInit[i] = joursRestants > 0 ? Math.floor(marg / joursRestants * (rng.end - rng.start + 1)) : 0;
+        needsSave = true;
+      }
+    }
+  });
+
+  // Sauvegarder si budgetsInit a été calculé
+  if (needsSave && rec.debut != null) {
+    const newRec = Object.assign({}, cache[key] || {}, { budgetsInit: budgetsInit });
+    cache[key] = newRec;
+    sb.from('budget').upsert({ key: key, value: newRec }, { onConflict: 'key' }).catch(function(e) { console.error(e); });
+  }
 
   // Header
   document.getElementById('month-label').textContent = monthName(yr, mo);
+  const accent = dernierSolde >= objectif ? GREEN : ORANGE;
   const sel = document.getElementById('solde-big');
-  sel.textContent = calc.debutBase > 0 ? fmt(calc.soldeEst) : '—';
-  sel.style.color = accent;
+  sel.textContent = debutBase > 0 ? fmt(dernierSolde) : '—'; sel.style.color = accent;
   const stEl = document.getElementById('solde-status');
-  if (calc.onTrack === true) { stEl.textContent = '✓ Objectif atteint — ' + fmt(calc.objectif); stEl.style.color = GREEN; }
-  else if (calc.onTrack === false) { stEl.textContent = '⚠ Manque ' + fmt(calc.objectif - calc.soldeCour) + ' pour l\'objectif'; stEl.style.color = ORANGE; }
-  else stEl.textContent = '';
+  if (debutBase > 0) {
+    if (dernierSolde > objectif) { stEl.textContent = '✓ Objectif atteint — ' + fmt(objectif); stEl.style.color = GREEN; }
+    else { stEl.textContent = '⚠ Manque ' + fmt(objectif - dernierSolde) + ' pour l\'objectif'; stEl.style.color = ORANGE; }
+  } else stEl.textContent = '';
+
   const pw = document.getElementById('progress-wrap');
-  if (calc.marge > 0) {
+  if (marge > 0) {
     pw.style.display = 'block';
-    document.getElementById('prog-left').textContent = 'Dépensé ' + fmt(calc.depSaisie);
-    document.getElementById('prog-right').textContent = 'Marge ' + fmt(calc.marge);
+    document.getElementById('prog-left').textContent = 'Dépensé ' + fmt(debutBase - dernierSolde);
+    document.getElementById('prog-right').textContent = 'Marge ' + fmt(marge);
     const pb = document.getElementById('progress-bar');
-    pb.style.width = calc.pctDep + '%';
-    pb.style.background = calc.pctDep > 95 ? ORANGE : GREEN;
+    pb.style.width = Math.min(100, Math.round((debutBase - dernierSolde) / marge * 100)) + '%';
+    pb.style.background = GREEN;
   } else pw.style.display = 'none';
 
   const vd = document.getElementById('val-debut');
-  vd.textContent = rec.debut != null ? fmt(rec.debut) : '—';
-  vd.style.color = rec.debut != null ? '#f0f0f0' : '#252525';
-  const vo = document.getElementById('val-objectif');
-  const lo = document.getElementById('label-objectif');
-  const co = document.getElementById('card-objectif');
-  vo.textContent = calc.objectif != null ? fmt(calc.objectif) : '—';
-  vo.style.color = calc.objectif != null ? GREEN : '#252525';
-  lo.style.color = calc.objectif != null ? GREEN : '#383838';
-  co.style.borderColor = calc.objectif != null ? GREEN + '44' : '#1a1a1a';
+  vd.textContent = rec.debut != null ? fmt(rec.debut) : '—'; vd.style.color = rec.debut != null ? '#f0f0f0' : '#252525';
+  const vo = document.getElementById('val-objectif'); const lo = document.getElementById('label-objectif'); const co = document.getElementById('card-objectif');
+  vo.textContent = rec.objectif != null ? fmt(rec.objectif) : '—'; vo.style.color = rec.objectif != null ? GREEN : '#252525';
+  lo.style.color = rec.objectif != null ? GREEN : '#383838'; co.style.borderColor = rec.objectif != null ? GREEN + '44' : '#1a1a1a';
   const bc = document.getElementById('budget-card');
-  if (calc.budgetJour !== null) {
+  if (budgetJourGlobal !== null) {
     bc.style.display = 'flex';
-    document.getElementById('budget-jour-val').textContent = fmt(Math.floor(calc.budgetJour));
-    document.getElementById('budget-reste').textContent = fmt(calc.marge);
+    document.getElementById('budget-jour-val').textContent = fmt(Math.floor(budgetJourGlobal));
+    document.getElementById('budget-reste').textContent = fmt(marge);
   } else bc.style.display = 'none';
 
-  // Semaines — toujours reconstruire
+  // Semaines
   const secSem = document.getElementById('semaines-section');
-  if (rec.debut == null) { secSem.style.display = 'none'; }
-  else {
-    secSem.style.display = 'block';
-    const list = document.getElementById('semaines-list');
-    list.innerHTML = '';
+  if (rec.debut == null) { secSem.style.display = 'none'; return; }
+  secSem.style.display = 'block';
+  const list = document.getElementById('semaines-list'); list.innerHTML = '';
 
-    ranges.forEach(function(rng, i) {
-      const start = rng.start;
-      const end = rng.end;
-      const isCur = cw === i;
-      const isPast = i < cw && cw !== -1;
-      const isFut = i > cw && cw !== -1;
-      const v = calc.semaines[i];
-      const maxB = calc.budgetSems[i];
-      const nj = calc.weekDays[i];
-      const over = v !== null && maxB !== null ? v > maxB : false;
-      const dotCol = v !== null ? (over ? ORANGE : GREEN) : (isCur ? '#3a3a3a' : '#1e1e1e');
-      const nameCol = isCur ? GREEN : (isPast ? '#383838' : '#333');
-      const validated = soldes[i] !== null && budgetsInit[i] !== null;
-      const dep = v || 0;
-      const budInit = budgetsInit[i] || 0;
-      const restant = budInit - dep;
-      const ok = restant >= 0;
+  ranges.forEach(function(rng, i) {
+    const start = rng.start; const end = rng.end;
+    const isCur = cw === i; const isPast = i < cw && cw !== -1; const isFut = i > cw && cw !== -1;
+    const nj = end - start + 1;
+    const dotCol = isCur ? GREEN : (isPast ? '#4ade80' : '#1e1e1e');
+    const nameCol = isCur ? GREEN : (isPast ? '#383838' : '#333');
 
-      const rightHtml = validated
-        ? '<div class="week-post-init">' + fmt(budInit) + '</div>' +
-          '<div class="week-post-dep" style="color:#666">' + fmt(dep) + ' dépensé sur ' + fmt(budInit) + '</div>' +
-          '<div class="week-post-rest" style="color:' + (ok ? GREEN : RED) + '">' + (ok ? 'Restant ' + fmt(restant) : '-' + fmt(Math.abs(restant))) + '</div>'
-        : '<div class="week-budget-init">' + (maxB !== null ? fmt(maxB) : '—') + '</div>' +
-          '<div class="week-budget-sub">budget sem.</div>' +
-          '<div id="wlive-' + i + '" class="week-live"></div>';
+    // Budget semaine figé
+    const budSem = budgetsInit[i] !== null ? budgetsInit[i] : (budgetJourGlobal !== null ? Math.floor(budgetJourGlobal * nj) : null);
 
-      // Jours semaine active
-      let daysHtml = '';
-      if (isCur && calc.budgetJour !== null) {
-        const totalDaysInMonth = new Date(yr, mo + 1, 0).getDate();
-        const depSemAvant = calc.semaines.slice(0, i).reduce(function(s, x) { return s + (x || 0); }, 0);
+    const rightHtml = '<div class="week-budget-init">' + (budSem !== null ? fmt(budSem) : '—') + '</div>' +
+      '<div class="week-budget-sub">budget sem.</div>';
 
-        // Trouver le dernier solde validé et le jour correspondant
-        let dernierSolde = calc.debutBase - depSemAvant;
-        let dernierJourValide = start; // commence au début de la semaine
-        for (let d = start; d <= end; d++) {
-          const k = yr + '-' + mo + '-' + d;
-          if (soldJours[k] !== undefined) {
-            dernierSolde = soldJours[k];
-            dernierJourValide = d;
-          }
-        }
+    // Jours détaillés pour semaine active
+    let daysHtml = '';
+    if (isCur) {
+      const soldeDebutSem = getSoldeAvantSemaine(soldJours, debutBase, start);
+      let soldePrevDay = soldeDebutSem;
 
-        // Budget/jour = dernier solde ÷ jours restants depuis le jour suivant le dernier validé
-        const joursRestants = totalDaysInMonth - dernierJourValide;
-        const budJourCommun = joursRestants > 0 ? Math.floor(dernierSolde / joursRestants) : 0;
-
-        let soldePrevDay = calc.debutBase - depSemAvant;
-        daysHtml = '<div style="margin-bottom:12px">';
-        for (let d = start; d <= end; d++) {
-          const dow = new Date(yr, mo, d).getDay();
-          const nomJour = JOURS_LONG[dow];
-          const isToday = isCurrentMonth && d === todayDate;
-          const isPastDay = isCurrentMonth && d < todayDate;
-          const soldJourKey = yr + '-' + mo + '-' + d;
-          const soldJourVal = soldJours[soldJourKey];
-
-          // Budget affiché : calculé depuis le solde AVANT ce jour
-          let budJour;
-          if (isPastDay || isToday) {
-            // Jour passé ou aujourd'hui : budget au moment où on arrive à ce jour
-            const joursRestantsJour = totalDaysInMonth - d;
-            budJour = joursRestantsJour > 0 ? Math.floor(soldePrevDay / joursRestantsJour) : 0;
-          } else {
-            // Jour futur : budJourCommun basé sur dernier solde connu
-            budJour = budJourCommun;
-          }
-
-          let restantHtml = '';
-          if (soldJourVal !== undefined) {
-            const depJour = Math.max(0, soldePrevDay - soldJourVal);
-            const restantJour = budJour - depJour;
-            restantHtml = '<div class="day-restant" style="color:' + (restantJour >= 0 ? GREEN : RED) + '">' +
-              (restantJour >= 0 ? 'Restant ' + fmt(restantJour) : '-' + fmt(Math.abs(restantJour))) + '</div>';
-            soldePrevDay = soldJourVal;
-          } else {
-            restantHtml = '<div id="drest-' + d + '" class="day-restant"></div>';
-          }
-
-          const cls = isToday ? 'today' : isPastDay ? 'past' : '';
-          daysHtml +=
-            '<div class="day-card ' + cls + '">' +
-              '<div class="day-header">' +
-                '<div class="day-name ' + cls + '">' + nomJour + ' ' + d + (isToday ? ' · Aujourd\'hui' : '') + '</div>' +
-                '<div class="day-right">' +
-                  '<div class="day-budget">' + fmt(budJour) + ' / jour</div>' +
-                  restantHtml +
-                '</div>' +
-              '</div>' +
-              '<div class="day-solde-row">' +
-                '<div class="day-solde-label">Solde</div>' +
-                '<input id="dinp-' + d + '" type="number" inputmode="decimal" class="day-solde-input" placeholder="Solde €" ' +
-                  'value="' + (soldJourVal !== undefined ? soldJourVal : '') + '" ' +
-                  'oninput="onDayInput(' + d + ')" onkeydown="if(event.key===\'Enter\')validerJour(' + d + ')" />' +
-                '<button class="day-btn-ok" onclick="validerJour(' + d + ')">✓</button>' +
-                '<button class="day-btn-x" onclick="effacerJour(' + d + ')">✕</button>' +
-              '</div>' +
-            '</div>';
-        }
-        daysHtml += '</div>';
+      // Trouver dernier solde de la semaine pour budJourCommun
+      let dernierSoldeSem = soldeDebutSem; let dernierJourSem = start - 1;
+      for (let d = start; d <= end; d++) {
+        const k = yr + '-' + mo + '-' + d;
+        if (soldJours[k] !== undefined) { dernierSoldeSem = soldJours[k]; dernierJourSem = d; }
       }
-      const card = document.createElement('div');
-      card.className = 'week-card' + (isCur ? ' current' : '') + (isFut ? ' future' : '');
-      card.innerHTML =
-        '<div class="week-header">' +
-          '<div>' +
-            '<div class="week-name-wrap">' +
-              '<div id="wdot-' + i + '" class="week-dot" style="background:' + dotCol + '"></div>' +
-              '<span class="week-name" style="color:' + nameCol + '">Semaine ' + (i + 1) + (isCur ? ' · en cours' : isPast ? ' · passée' : '') + '</span>' +
-            '</div>' +
-            '<div class="week-dates">' + dowCourt(yr, mo, start) + ' ' + start + ' → ' + dowCourt(yr, mo, end) + ' ' + end + ' · ' + nj + 'j</div>' +
-          '</div>' +
-          '<div id="wright-' + i + '" class="week-right">' + rightHtml + '</div>' +
-        '</div>' +
-        '<div id="wbar-' + i + '" class="week-mini-bar-bg" style="display:' + (v !== null && maxB !== null ? 'block' : 'none') + '">' +
-          '<div class="week-mini-bar" style="width:' + (v !== null && maxB !== null ? Math.min(100, Math.round(v / maxB * 100)) : 0) + '%;background:' + (over ? ORANGE : GREEN) + '"></div>' +
-        '</div>' +
-        daysHtml +
-        '<div class="week-solde-row">' +
-          '<div class="week-solde-label">Solde fin sem.</div>' +
-          '<input id="sinp-' + i + '" type="number" inputmode="decimal" class="week-solde-input" placeholder="Solde €" ' +
-            'value="' + (soldJours[yr + '-' + mo + '-' + ranges[i].end] !== undefined ? soldJours[yr + '-' + mo + '-' + ranges[i].end] : '') + '" ' +
-            'onkeydown="if(event.key===\'Enter\')validerSem(' + i + ')" />' +
-        '</div>' +
-        '<div class="week-btn-row">' +
-          '<button class="btn-valider" onclick="validerSem(' + i + ')">✓ Valider fin sem.</button>' +
-          '<button class="btn-reset-sem" onclick="openResetSem(' + i + ')">↺ Reset</button>' +
-        '</div>';
-      list.appendChild(card);
-    });
-  }
+      const joursRestantsSem = totalDaysInMonth - dernierJourSem;
+      const budJourCommun = joursRestantsSem > 0 ? Math.floor(Math.max(0, dernierSoldeSem - objectif) / joursRestantsSem) : 0;
 
+      daysHtml = '<div style="margin-bottom:12px">';
+      for (let d = start; d <= end; d++) {
+        const dow = new Date(yr, mo, d).getDay();
+        const nomJour = JOURS_LONG[dow];
+        const isToday = isCurrentMonth && d === todayDate;
+        const isPastDay = isCurrentMonth && d < todayDate;
+        const soldJourKey = yr + '-' + mo + '-' + d;
+        const soldJourVal = soldJours[soldJourKey];
+
+        // Budget/jour : pour passés figé au moment, pour futurs = budJourCommun
+        let budJour;
+        if (isPastDay || isToday) {
+          const joursRestantsJour = totalDaysInMonth - d;
+          budJour = joursRestantsJour > 0 ? Math.floor(Math.max(0, soldePrevDay - objectif) / joursRestantsJour) : 0;
+        } else {
+          budJour = budJourCommun;
+        }
+
+        let restantHtml = '';
+        if (soldJourVal !== undefined) {
+          const depJour = Math.max(0, soldePrevDay - soldJourVal);
+          const restantJour = budJour - depJour;
+          restantHtml = '<div class="day-restant" style="color:' + (restantJour >= 0 ? GREEN : RED) + '">' +
+            (restantJour >= 0 ? 'Restant ' + fmt(restantJour) : '-' + fmt(Math.abs(restantJour))) + '</div>';
+          soldePrevDay = soldJourVal;
+        } else {
+          restantHtml = '<div id="drest-' + d + '" class="day-restant"></div>';
+        }
+
+        const cls = isToday ? 'today' : isPastDay ? 'past' : '';
+        daysHtml += '<div class="day-card ' + cls + '">' +
+          '<div class="day-header">' +
+            '<div class="day-name ' + cls + '">' + nomJour + ' ' + d + (isToday ? ' · Aujourd\'hui' : '') + '</div>' +
+            '<div class="day-right"><div class="day-budget">' + fmt(budJour) + ' / jour</div>' + restantHtml + '</div>' +
+          '</div>' +
+          '<div class="day-solde-row">' +
+            '<div class="day-solde-label">Solde</div>' +
+            '<input id="dinp-' + d + '" type="number" inputmode="decimal" class="day-solde-input" placeholder="Solde €" ' +
+              'value="' + (soldJourVal !== undefined ? soldJourVal : '') + '" ' +
+              'oninput="onDayInput(' + d + ')" onkeydown="if(event.key===\'Enter\')validerJour(' + d + ')" />' +
+            '<button class="day-btn-ok" onclick="validerJour(' + d + ')">✓</button>' +
+            '<button class="day-btn-x" onclick="effacerJour(' + d + ')">✕</button>' +
+          '</div>' +
+        '</div>';
+      }
+      daysHtml += '</div>';
+    }
+
+    // Solde fin de semaine = solde du dimanche si saisi
+    const soldeDimanche = soldJours[yr + '-' + mo + '-' + end];
+
+    const card = document.createElement('div');
+    card.className = 'week-card' + (isCur ? ' current' : '') + (isFut ? ' future' : '');
+    card.innerHTML =
+      '<div class="week-header">' +
+        '<div>' +
+          '<div class="week-name-wrap">' +
+            '<div class="week-dot" style="background:' + dotCol + '"></div>' +
+            '<span class="week-name" style="color:' + nameCol + '">Semaine ' + (i + 1) + (isCur ? ' · en cours' : isPast ? ' · passée' : '') + '</span>' +
+          '</div>' +
+          '<div class="week-dates">' + dowCourt(yr, mo, start) + ' ' + start + ' → ' + dowCourt(yr, mo, end) + ' ' + end + ' · ' + nj + 'j</div>' +
+        '</div>' +
+        '<div class="week-right">' + rightHtml + '</div>' +
+      '</div>' +
+      daysHtml +
+      '<div class="week-solde-row">' +
+        '<div class="week-solde-label">Solde fin sem.</div>' +
+        '<input id="sinp-' + i + '" type="number" inputmode="decimal" class="week-solde-input" placeholder="Solde €" ' +
+          'value="' + (soldeDimanche !== undefined ? soldeDimanche : '') + '" ' +
+          'onkeydown="if(event.key===\'Enter\')validerSem(' + i + ')" />' +
+      '</div>' +
+      '<div class="week-btn-row">' +
+        '<button class="btn-valider" onclick="validerSem(' + i + ')">✓ Valider fin sem.</button>' +
+        '<button class="btn-reset-sem" onclick="openResetSem(' + i + ')">↺ Reset</button>' +
+      '</div>';
+    list.appendChild(card);
+  });
 }
 
 (async function() {
