@@ -575,14 +575,14 @@ function render() {
           const soldJourKey = yr + '-' + mo + '-' + d;
           const soldJourVal = soldJours[soldJourKey];
 
-          // Budget affiché : pour les jours passés avec solde saisi → calculé à ce moment
-          // Pour les jours futurs → budJourCommun basé sur dernier solde connu
+          // Budget affiché : calculé depuis le solde AVANT ce jour
           let budJour;
-          if (soldJourVal !== undefined && (isPastDay || isToday)) {
-            // Jour passé validé : budget au moment de la saisie
+          if (isPastDay || isToday) {
+            // Jour passé ou aujourd'hui : budget au moment où on arrive à ce jour
             const joursRestantsJour = totalDaysInMonth - d;
             budJour = joursRestantsJour > 0 ? Math.floor(soldePrevDay / joursRestantsJour) : 0;
           } else {
+            // Jour futur : budJourCommun basé sur dernier solde connu
             budJour = budJourCommun;
           }
 
