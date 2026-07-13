@@ -456,27 +456,15 @@ async function validerSem(i) {
   if (isNaN(val)) { showFlash('Entrez un solde de fin de semaine', RED); return; }
   const key = yr + '-' + mo;
   const ranges = getWeekRanges(yr, mo);
-  const n = ranges.length;
   const rec = Object.assign({}, cache[key] || {});
-  const debutBase = rec.debut || 0;
-  const objectif = rec.objectif != null ? rec.objectif : null;
-  const weekDays = ranges.map(function(r) { return r.end - r.start + 1; });
-  const soldes = rec.soldes && rec.soldes.length === n ? rec.soldes.slice() : Array(n).fill(null);
-  const budgetsInit = rec.budgetsInit && rec.budgetsInit.length === n ? rec.budgetsInit.slice() : Array(n).fill(null);
-  soldes[i] = val;
-  rec.soldes = soldes;
-  rec.semaines = soldesToSemaines(soldes, debutBase);
-  if (budgetsInit[i] === null) {
-    const joursRestAvant = ranges.slice(i).reduce(function(s, _, j) { return s + weekDays[i + j]; }, 0);
-    const depAvant = rec.semaines.slice(0, i).reduce(function(s, v) { return s + (v || 0); }, 0);
-    const soldeCourAvant = debutBase - depAvant;
-    const margeAvant = objectif !== null ? Math.max(0, soldeCourAvant - objectif) : soldeCourAvant;
-    budgetsInit[i] = Math.floor((joursRestAvant > 0 ? margeAvant / joursRestAvant : 0) * weekDays[i]);
-  }
-  rec.budgetsInit = budgetsInit;
+  // Enregistrer comme solde du dernier jour de la semaine (dimanche)
+  const dernierJourSem = ranges[i].end;
+  const soldJours = Object.assign({}, rec.soldJours || {});
+  soldJours[yr + '-' + mo + '-' + dernierJourSem] = val;
+  rec.soldJours = soldJours;
   await saveKey(key, rec);
-  showFlash('Semaine ' + (i + 1) + ' validée ✓');
-  render(); // Toujours reconstruire
+  showFlash('Solde fin semaine ' + (i + 1) + ' enregistré ✓');
+  render();
 }
 
 function render() {
@@ -657,12 +645,13 @@ function render() {
         daysHtml +
         '<div class="week-solde-row">' +
           '<div class="week-solde-label">Solde fin sem.</div>' +
-          '<div class="week-solde-input" style="display:flex;align-items:center;justify-content:flex-end;color:#555;font-size:18px;">' +
-            (soldes[i] !== null ? fmt(soldes[i]) : '—') +
-          '</div>' +
+          '<input id="sinp-' + i + '" type="number" inputmode="decimal" class="week-solde-input" placeholder="Solde €" ' +
+            'value="' + (soldJours[yr + '-' + mo + '-' + ranges[i].end] !== undefined ? soldJours[yr + '-' + mo + '-' + ranges[i].end] : '') + '" ' +
+            'onkeydown="if(event.key===\'Enter\')validerSem(' + i + ')" />' +
         '</div>' +
         '<div class="week-btn-row">' +
-          '<button class="btn-reset-sem" style="flex:1" onclick="openResetSem(' + i + ')">↺ Reset semaine</button>' +
+          '<button class="btn-valider" onclick="validerSem(' + i + ')">✓ Valider fin sem.</button>' +
+          '<button class="btn-reset-sem" onclick="openResetSem(' + i + ')">↺ Reset</button>' +
         '</div>';
       list.appendChild(card);
     });
