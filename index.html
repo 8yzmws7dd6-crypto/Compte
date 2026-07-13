@@ -549,6 +549,7 @@ function render() {
       if (isCur && calc.budgetJour !== null) {
         const depSemAvant = calc.semaines.slice(0, i).reduce(function(s, x) { return s + (x || 0); }, 0);
         let soldePrevDay = calc.debutBase - depSemAvant;
+        const totalDaysInMonth = new Date(yr, mo + 1, 0).getDate();
         daysHtml = '<div style="margin-bottom:12px">';
         for (let d = start; d <= end; d++) {
           const dow = new Date(yr, mo, d).getDay();
@@ -595,47 +596,6 @@ function render() {
         }
         daysHtml += '</div>';
       }
-        for (let d = start; d <= end; d++) {
-          const dow = new Date(yr, mo, d).getDay();
-          const nomJour = JOURS_LONG[dow];
-          const isToday = isCurrentMonth && d === todayDate;
-          const isPastDay = isCurrentMonth && d < todayDate;
-          const soldJourKey = yr + '-' + mo + '-' + d;
-          const soldJourVal = soldJours[soldJourKey];
-          let restantJour = null;
-          let restantHtml = '';
-          if (soldJourVal !== undefined) {
-            const depJour = Math.max(0, soldePrevDay - soldJourVal);
-            restantJour = budJour - depJour;
-            restantHtml = '<div class="day-restant" style="color:' + (restantJour >= 0 ? GREEN : RED) + '">' +
-              (restantJour >= 0 ? 'Restant ' + fmt(restantJour) : '-' + fmt(Math.abs(restantJour))) + '</div>';
-            soldePrevDay = soldJourVal;
-          } else {
-            restantHtml = '<div id="drest-' + d + '" class="day-restant"></div>';
-          }
-          const cls = isToday ? 'today' : isPastDay ? 'past' : '';
-          daysHtml +=
-            '<div class="day-card ' + cls + '">' +
-              '<div class="day-header">' +
-                '<div class="day-name ' + cls + '">' + nomJour + ' ' + d + (isToday ? ' · Aujourd\'hui' : '') + '</div>' +
-                '<div class="day-right">' +
-                  '<div class="day-budget">' + fmt(budJour) + ' / jour</div>' +
-                  restantHtml +
-                '</div>' +
-              '</div>' +
-              '<div class="day-solde-row">' +
-                '<div class="day-solde-label">Solde</div>' +
-                '<input id="dinp-' + d + '" type="number" inputmode="decimal" class="day-solde-input" placeholder="Solde €" ' +
-                  'value="' + (soldJourVal !== undefined ? soldJourVal : '') + '" ' +
-                  'oninput="onDayInput(' + d + ')" onkeydown="if(event.key===\'Enter\')validerJour(' + d + ')" />' +
-                '<button class="day-btn-ok" onclick="validerJour(' + d + ')">✓</button>' +
-                '<button class="day-btn-x" onclick="effacerJour(' + d + ')">✕</button>' +
-              '</div>' +
-            '</div>';
-        }
-        daysHtml += '</div>';
-      }
-
       const card = document.createElement('div');
       card.className = 'week-card' + (isCur ? ' current' : '') + (isFut ? ' future' : '');
       card.innerHTML =
