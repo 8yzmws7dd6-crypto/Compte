@@ -180,10 +180,7 @@
   <div class="section-title">Semaines</div>
   <div id="semaines-list"></div>
 </div>
-<div class="section" id="history-section" style="display:none">
-  <div class="section-title">Historique</div>
-  <div class="history-card" id="history-list"></div>
-</div>
+
 <script>
 const SUPABASE_URL = 'https://qwkovamgfsedcpytrimb.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_CZi-2FMtg6Czewv5st-_Gg_FqotSkCZ';
@@ -403,8 +400,10 @@ function onDayInput(d) {
     const k = yr + '-' + mo + '-' + dd;
     if (soldJours[k] !== undefined) soldePrev = soldJours[k];
   }
-  // Budget fixe par jour
-  const budJour = Math.floor(calc.budgetJour);
+  // Budget/jour = solde précédent / jours restants dans le mois
+  const totalDaysInMonth = new Date(yr, mo + 1, 0).getDate();
+  const joursRestantsMois = totalDaysInMonth - d + 1;
+  const budJour = joursRestantsMois > 0 ? Math.floor(soldePrev / joursRestantsMois) : 0;
   const dep = Math.max(0, soldePrev - val);
   const restant = budJour - dep;
   const ok = restant >= 0;
@@ -550,8 +549,52 @@ function render() {
       if (isCur && calc.budgetJour !== null) {
         const depSemAvant = calc.semaines.slice(0, i).reduce(function(s, x) { return s + (x || 0); }, 0);
         let soldePrevDay = calc.debutBase - depSemAvant;
-        const budJour = Math.floor(calc.budgetJour); // Fixe pour toute la semaine
         daysHtml = '<div style="margin-bottom:12px">';
+        for (let d = start; d <= end; d++) {
+          const dow = new Date(yr, mo, d).getDay();
+          const nomJour = JOURS_LONG[dow];
+          const isToday = isCurrentMonth && d === todayDate;
+          const isPastDay = isCurrentMonth && d < todayDate;
+          const soldJourKey = yr + '-' + mo + '-' + d;
+          const soldJourVal = soldJours[soldJourKey];
+          // Jours restants dans le mois à partir de ce jour
+          const totalDaysInMonth = new Date(yr, mo + 1, 0).getDate();
+          const joursRestantsMois = totalDaysInMonth - d + 1;
+          // Budget/jour = solde précédent / jours restants dans le mois
+          const budJour = joursRestantsMois > 0 ? Math.floor(soldePrevDay / joursRestantsMois) : 0;
+          let restantJour = null;
+          let restantHtml = '';
+          if (soldJourVal !== undefined) {
+            const depJour = Math.max(0, soldePrevDay - soldJourVal);
+            restantJour = budJour - depJour;
+            restantHtml = '<div class="day-restant" style="color:' + (restantJour >= 0 ? GREEN : RED) + '">' +
+              (restantJour >= 0 ? 'Restant ' + fmt(restantJour) : '-' + fmt(Math.abs(restantJour))) + '</div>';
+            soldePrevDay = soldJourVal;
+          } else {
+            restantHtml = '<div id="drest-' + d + '" class="day-restant"></div>';
+          }
+          const cls = isToday ? 'today' : isPastDay ? 'past' : '';
+          daysHtml +=
+            '<div class="day-card ' + cls + '">' +
+              '<div class="day-header">' +
+                '<div class="day-name ' + cls + '">' + nomJour + ' ' + d + (isToday ? ' · Aujourd\'hui' : '') + '</div>' +
+                '<div class="day-right">' +
+                  '<div class="day-budget">' + fmt(budJour) + ' / jour</div>' +
+                  restantHtml +
+                '</div>' +
+              '</div>' +
+              '<div class="day-solde-row">' +
+                '<div class="day-solde-label">Solde</div>' +
+                '<input id="dinp-' + d + '" type="number" inputmode="decimal" class="day-solde-input" placeholder="Solde €" ' +
+                  'value="' + (soldJourVal !== undefined ? soldJourVal : '') + '" ' +
+                  'oninput="onDayInput(' + d + ')" onkeydown="if(event.key===\'Enter\')validerJour(' + d + ')" />' +
+                '<button class="day-btn-ok" onclick="validerJour(' + d + ')">✓</button>' +
+                '<button class="day-btn-x" onclick="effacerJour(' + d + ')">✕</button>' +
+              '</div>' +
+            '</div>';
+        }
+        daysHtml += '</div>';
+      }
         for (let d = start; d <= end; d++) {
           const dow = new Date(yr, mo, d).getDay();
           const nomJour = JOURS_LONG[dow];
@@ -624,33 +667,6 @@ function render() {
     });
   }
 
-  // Historique
-  const otherKeys = Object.keys(cache).filter(function(k) { return k !== key; });
-  const secHist = document.getElementById('history-section');
-  if (otherKeys.length > 0) {
-    secHist.style.display = 'block';
-    const hl = document.getElementById('history-list');
-    hl.innerHTML = '';
-    otherKeys.sort(function(a, b) { return b.localeCompare(a); }).slice(0, 5).forEach(function(k) {
-      const parts = k.split('-');
-      const y = parseInt(parts[0]);
-      const m = parseInt(parts[1]);
-      const r = cache[k] || {};
-      const dep = (r.semaines || []).reduce(function(s, v) { return s + (v || 0); }, 0);
-      const fin = r.debut != null ? r.debut - dep : null;
-      const hit = r.objectif != null && fin != null ? fin >= r.objectif : null;
-      const row = document.createElement('div');
-      row.className = 'history-row';
-      row.innerHTML =
-        '<div><div class="history-month">' + new Date(y, m, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) + '</div>' +
-        (r.objectif != null ? '<div class="history-obj">obj. ' + fmt(r.objectif) + '</div>' : '') + '</div>' +
-        '<div class="history-right">' +
-        (hit !== null ? '<div class="history-dot" style="background:' + (hit ? GREEN : RED) + '"></div>' : '') +
-        (fin != null ? '<span class="history-amount" style="color:' + (hit === null ? '#333' : hit ? GREEN : RED) + '">' + fmt(fin) + '</span>' : '') +
-        '</div>';
-      hl.appendChild(row);
-    });
-  } else secHist.style.display = 'none';
 }
 
 (async function() {
