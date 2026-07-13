@@ -400,8 +400,7 @@ function render() {
     });
     if (needsSave && debutBase > 0) {
       const newRec = Object.assign({}, cache[key] || {}, { budgetsInit: budgetsInit });
-      cache[key] = newRec;
-      sb.from('budget').upsert({ key: key, value: newRec }, { onConflict: 'key' }).catch(function(e) { console.error(e); });
+      saveKey(key, newRec);
     }
 
     // Header
