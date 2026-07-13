@@ -552,7 +552,7 @@ function render() {
 
         // Trouver le dernier solde validé et le jour correspondant
         let dernierSolde = calc.debutBase - depSemAvant;
-        let dernierJourValide = todayDate;
+        let dernierJourValide = start; // commence au début de la semaine
         for (let d = start; d <= end; d++) {
           const k = yr + '-' + mo + '-' + d;
           if (soldJours[k] !== undefined) {
@@ -561,8 +561,8 @@ function render() {
           }
         }
 
-        // Budget/jour = dernier solde ÷ jours restants depuis le dernier jour validé (inclus)
-        const joursRestants = totalDaysInMonth - dernierJourValide + 1;
+        // Budget/jour = dernier solde ÷ jours restants depuis le jour suivant le dernier validé
+        const joursRestants = totalDaysInMonth - dernierJourValide;
         const budJourCommun = joursRestants > 0 ? Math.floor(dernierSolde / joursRestants) : 0;
 
         let soldePrevDay = calc.debutBase - depSemAvant;
