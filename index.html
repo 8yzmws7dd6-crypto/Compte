@@ -320,9 +320,15 @@ async function validerJour(d) {
   const inp = document.getElementById('dinp-' + d); const val = parseFloat(inp.value);
   if (isNaN(val)) { showFlash('Entrez un solde', RED); return; }
   const key = yr + '-' + mo; const rec = Object.assign({}, cache[key] || {});
+  const ranges = getWeekRanges(yr, mo); const n = ranges.length;
   const soldJours = Object.assign({}, rec.soldJours || {});
   soldJours[yr + '-' + mo + '-' + d] = val;
   rec.soldJours = soldJours;
+  // Effacer budgetsInit des semaines suivant la semaine du jour saisi
+  const weekIdx = ranges.findIndex(function(r) { return d >= r.start && d <= r.end; });
+  const budgetsInit = rec.budgetsInit && rec.budgetsInit.length === n ? rec.budgetsInit.slice() : Array(n).fill(null);
+  for (let j = weekIdx + 1; j < n; j++) budgetsInit[j] = null;
+  rec.budgetsInit = budgetsInit;
   await saveKey(key, rec); showFlash('Jour ' + d + ' enregistré ✓'); render();
 }
 
@@ -342,6 +348,11 @@ async function validerSem(i) {
   const soldJours = Object.assign({}, rec.soldJours || {});
   soldJours[yr + '-' + mo + '-' + ranges[i].end] = val;
   rec.soldJours = soldJours;
+  // Effacer budgetsInit des semaines suivantes pour forcer recalcul
+  const n = ranges.length;
+  const budgetsInit = rec.budgetsInit && rec.budgetsInit.length === n ? rec.budgetsInit.slice() : Array(n).fill(null);
+  for (let j = i + 1; j < n; j++) budgetsInit[j] = null;
+  rec.budgetsInit = budgetsInit;
   await saveKey(key, rec); showFlash('Solde fin sem. ' + (i + 1) + ' enregistré ✓'); render();
 }
 
