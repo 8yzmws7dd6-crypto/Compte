@@ -403,13 +403,10 @@ function onDayInput(d) {
     const k = yr + '-' + mo + '-' + dd;
     if (soldJours[k] !== undefined) soldePrev = soldJours[k];
   }
-  // Budget dynamique pour ce jour
-  const joursRestants = end - d + 1;
-  const objectif = calc.objectif || 0;
-  const margeRestante = Math.max(0, soldePrev - objectif);
-  const budJourDyn = joursRestants > 0 ? Math.floor(margeRestante / joursRestants) : 0;
+  // Budget fixe par jour
+  const budJour = Math.floor(calc.budgetJour);
   const dep = Math.max(0, soldePrev - val);
-  const restant = budJourDyn - dep;
+  const restant = budJour - dep;
   const ok = restant >= 0;
   restEl.textContent = (ok ? 'Restant ' : '-') + fmt(Math.abs(restant));
   restEl.style.color = ok ? GREEN : RED;
@@ -511,7 +508,7 @@ function render() {
   if (calc.budgetJour !== null) {
     bc.style.display = 'flex';
     document.getElementById('budget-jour-val').textContent = fmt(Math.floor(calc.budgetJour));
-    document.getElementById('budget-reste').textContent = fmt(calc.margeRest);
+    document.getElementById('budget-reste').textContent = fmt(calc.marge);
   } else bc.style.display = 'none';
 
   // Semaines — toujours reconstruire
@@ -553,7 +550,7 @@ function render() {
       if (isCur && calc.budgetJour !== null) {
         const depSemAvant = calc.semaines.slice(0, i).reduce(function(s, x) { return s + (x || 0); }, 0);
         let soldePrevDay = calc.debutBase - depSemAvant;
-        const objectif = calc.objectif || 0;
+        const budJour = Math.floor(calc.budgetJour); // Fixe pour toute la semaine
         daysHtml = '<div style="margin-bottom:12px">';
         for (let d = start; d <= end; d++) {
           const dow = new Date(yr, mo, d).getDay();
@@ -562,16 +559,11 @@ function render() {
           const isPastDay = isCurrentMonth && d < todayDate;
           const soldJourKey = yr + '-' + mo + '-' + d;
           const soldJourVal = soldJours[soldJourKey];
-          // Jours restants à partir de ce jour jusqu'à fin de semaine
-          const joursRestants = end - d + 1;
-          // Budget restant = solde précédent - objectif réparti sur jours restants
-          const margeRestante = Math.max(0, soldePrevDay - objectif);
-          const budJourDyn = joursRestants > 0 ? Math.floor(margeRestante / joursRestants) : 0;
           let restantJour = null;
           let restantHtml = '';
           if (soldJourVal !== undefined) {
             const depJour = Math.max(0, soldePrevDay - soldJourVal);
-            restantJour = budJourDyn - depJour;
+            restantJour = budJour - depJour;
             restantHtml = '<div class="day-restant" style="color:' + (restantJour >= 0 ? GREEN : RED) + '">' +
               (restantJour >= 0 ? 'Restant ' + fmt(restantJour) : '-' + fmt(Math.abs(restantJour))) + '</div>';
             soldePrevDay = soldJourVal;
@@ -584,7 +576,7 @@ function render() {
               '<div class="day-header">' +
                 '<div class="day-name ' + cls + '">' + nomJour + ' ' + d + (isToday ? ' · Aujourd\'hui' : '') + '</div>' +
                 '<div class="day-right">' +
-                  '<div class="day-budget">' + fmt(budJourDyn) + ' / jour</div>' +
+                  '<div class="day-budget">' + fmt(budJour) + ' / jour</div>' +
                   restantHtml +
                 '</div>' +
               '</div>' +
