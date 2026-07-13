@@ -548,19 +548,21 @@ function render() {
       let daysHtml = '';
       if (isCur && calc.budgetJour !== null) {
         const totalDaysInMonth = new Date(yr, mo + 1, 0).getDate();
-        const joursRestants = totalDaysInMonth - todayDate + 1;
-
-        // Dernier solde connu = dernier jour validé dans soldJours, sinon solde de début de semaine
         const depSemAvant = calc.semaines.slice(0, i).reduce(function(s, x) { return s + (x || 0); }, 0);
+
+        // Trouver le dernier solde validé et le jour correspondant
         let dernierSolde = calc.debutBase - depSemAvant;
-        // Parcourir tous les jours déjà validés pour trouver le dernier
+        let dernierJourValide = todayDate;
         for (let d = start; d <= end; d++) {
           const k = yr + '-' + mo + '-' + d;
-          if (soldJours[k] !== undefined) dernierSolde = soldJours[k];
+          if (soldJours[k] !== undefined) {
+            dernierSolde = soldJours[k];
+            dernierJourValide = d;
+          }
         }
 
-        // Budget/jour = dernier solde connu ÷ jours restants depuis aujourd'hui
-        // IDENTIQUE pour tous les jours non encore validés
+        // Budget/jour = dernier solde ÷ jours restants depuis le dernier jour validé (inclus)
+        const joursRestants = totalDaysInMonth - dernierJourValide + 1;
         const budJourCommun = joursRestants > 0 ? Math.floor(dernierSolde / joursRestants) : 0;
 
         let soldePrevDay = calc.debutBase - depSemAvant;
