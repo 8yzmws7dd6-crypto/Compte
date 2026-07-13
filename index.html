@@ -538,10 +538,14 @@ function render() {
             '<div class="week-budget-init">' + (budSem !== null ? fmt(budSem) : '—') + '</div>' +
             '<div class="week-budget-sub">budget sem.</div>' +
             (isCur && budgetJourGlobal !== null ? (function() {
-              // Jours restants dans la semaine depuis aujourd'hui (inclus)
-              const joursRestSem = end - todayDate + 1;
-              const restantSem = Math.max(0, joursRestSem) * Math.floor(budgetJourGlobal);
-              const ok = restantSem >= 0;
+              // Trouver le dernier jour saisi dans cette semaine
+              let dernierJourSaisiSem = todayDate - 1; // par défaut avant aujourd'hui
+              for (var d = start; d <= end; d++) {
+                if (soldJours[yr + '-' + mo + '-' + d] !== undefined) dernierJourSaisiSem = d;
+              }
+              // Jours restants = du lendemain du dernier jour saisi jusqu'à fin de semaine
+              const joursRestSem = Math.max(0, end - dernierJourSaisiSem);
+              const restantSem = joursRestSem * Math.floor(budgetJourGlobal);
               return '<div style="font-size:13px;font-weight:700;margin-top:4px;color:' + GREEN + '">Restant ' + fmt(restantSem) + '</div>';
             })() : '') +
           '</div>' +
