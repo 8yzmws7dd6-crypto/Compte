@@ -293,7 +293,16 @@ function getSoldeAvantSemaine(soldJours, debutBase, weekStart) {
 }
 
 // Trouver le dernier solde saisi tous jours confondus
-function getDernierSolde(soldJours, debutBase) {
+function getDernierSolde(soldJours, soldes, ranges, debutBase) {
+  // Compatibilite ancien format : soldes = tableau de fins de semaine
+  if (soldes && soldes.length > 0) {
+    for (let i = soldes.length - 1; i >= 0; i--) {
+      if (soldes[i] !== null) {
+        const k = yr + "-" + mo + "-" + ranges[i].end;
+        if (!soldJours[k]) soldJours[k] = soldes[i];
+      }
+    }
+  }
   let solde = debutBase; let dernierJour = 0;
   Object.keys(soldJours).forEach(function(k) {
     const parts = k.split('-');
@@ -346,7 +355,10 @@ function onDayInput(d) {
   if (!restEl) return;
   if (isNaN(val)) { restEl.textContent = ''; return; }
   const key = yr + '-' + mo; const rec = cache[key] || {};
-  const soldJours = rec.soldJours || {};
+  const soldJoursRaw = rec.soldJours || {};
+  // Compat ancien format
+  const soldJours = Object.assign({}, soldJoursRaw);
+  if (rec.soldes) { ranges.forEach(function(rng, i) { if (rec.soldes[i] != null) { const k = yr+"-"+mo+"-"+rng.end; if (!soldJours[k]) soldJours[k] = rec.soldes[i]; } }); }
   const debutBase = rec.debut || 0;
   const objectif = rec.objectif || 0;
   const totalDaysInMonth = new Date(yr, mo + 1, 0).getDate();
@@ -368,7 +380,10 @@ function onDayInput(d) {
 function render() {
   const key = yr + '-' + mo; const rec = cache[key] || {};
   const ranges = getWeekRanges(yr, mo); const n = ranges.length;
-  const soldJours = rec.soldJours || {};
+  const soldJoursRaw = rec.soldJours || {};
+  // Compat ancien format
+  const soldJours = Object.assign({}, soldJoursRaw);
+  if (rec.soldes) { ranges.forEach(function(rng, i) { if (rec.soldes[i] != null) { const k = yr+"-"+mo+"-"+rng.end; if (!soldJours[k]) soldJours[k] = rec.soldes[i]; } }); }
   const debutBase = rec.debut || 0;
   const objectif = rec.objectif || 0;
   const totalDaysInMonth = new Date(yr, mo + 1, 0).getDate();
@@ -377,8 +392,19 @@ function render() {
   const todayDate = TODAY.getDate();
   let budgetsInit = rec.budgetsInit && rec.budgetsInit.length === n ? rec.budgetsInit.slice() : Array(n).fill(null);
 
+  // Compatibilité ancien format : convertir soldes[] en soldJours
+  const soldJoursCompat = Object.assign({}, soldJours);
+  if (rec.soldes && rec.soldes.length > 0) {
+    ranges.forEach(function(rng, i) {
+      if (rec.soldes[i] !== null && rec.soldes[i] !== undefined) {
+        const k = yr + '-' + mo + '-' + rng.end;
+        if (!soldJoursCompat[k]) soldJoursCompat[k] = rec.soldes[i];
+      }
+    });
+  }
+
   // Dernier solde global
-  const ds = getDernierSolde(soldJours, debutBase);
+  const ds = getDernierSolde(soldJoursCompat, debutBase);
   const dernierSolde = ds.solde; const dernierJour = ds.jour;
   const joursRestantsGlobal = dernierJour > 0 ? totalDaysInMonth - dernierJour : (isCurrentMonth ? totalDaysInMonth - todayDate + 1 : totalDaysInMonth);
   const margeGlobale = Math.max(0, dernierSolde - objectif);
