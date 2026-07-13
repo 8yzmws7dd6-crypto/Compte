@@ -331,8 +331,7 @@ async function validerJour(d){
   rec.soldJours=soldJours;
   await saveKey(key,rec);
   showFlash(`Jour ${d} enregistré ✓`);
-  // Mettre à jour l'affichage du jour
-  updateDayDisplay(d,val,rec);
+  weeksBuilt=false;render();
 }
 
 function updateDayDisplay(d,solde,rec){
