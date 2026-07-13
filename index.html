@@ -537,6 +537,13 @@ function render() {
           '<div class="week-right">' +
             '<div class="week-budget-init">' + (budSem !== null ? fmt(budSem) : '—') + '</div>' +
             '<div class="week-budget-sub">budget sem.</div>' +
+            (isCur && budgetJourGlobal !== null ? (function() {
+              // Jours restants dans la semaine depuis aujourd'hui (inclus)
+              const joursRestSem = end - todayDate + 1;
+              const restantSem = Math.max(0, joursRestSem) * Math.floor(budgetJourGlobal);
+              const ok = restantSem >= 0;
+              return '<div style="font-size:13px;font-weight:700;margin-top:4px;color:' + GREEN + '">Restant ' + fmt(restantSem) + '</div>';
+            })() : '') +
           '</div>' +
         '</div>' +
         daysHtml +
