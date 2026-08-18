@@ -300,12 +300,12 @@ function normalizeSoldJours(rec, ranges) {
   return soldJours;
 }
 
-// Dernier solde saisi tous jours confondus
-function getDernierSolde(soldJours, debutBase) {
+// Dernier solde saisi tous jours confondus (valide uniquement si le jour existe dans le mois)
+function getDernierSolde(soldJours, debutBase, totalDaysInMonth) {
   let solde = debutBase; let jour = 0;
   Object.keys(soldJours).forEach(function(k) {
     const d = parseInt(k.split('-')[2]);
-    if (d > jour) { jour = d; solde = soldJours[k]; }
+    if (d > jour && d <= totalDaysInMonth) { jour = d; solde = soldJours[k]; }
   });
   return { solde: solde, jour: jour };
 }
@@ -395,7 +395,7 @@ function render() {
     const marge = debutBase - objectif;
 
     // Dernier solde global
-    const ds = getDernierSolde(soldJours, debutBase);
+    const ds = getDernierSolde(soldJours, debutBase, totalDaysInMonth);
     const dernierSolde = ds.solde; const dernierJour = ds.jour;
     const joursRestantsGlobal = dernierJour > 0 ? totalDaysInMonth - dernierJour : (isCurrentMonth ? totalDaysInMonth - todayDate + 1 : totalDaysInMonth);
     const margeGlobale = Math.max(0, dernierSolde - objectif);
@@ -424,7 +424,7 @@ function render() {
     let soldeEstime = dernierSolde;
     if (budgetJourGlobal !== null && dernierJour > 0) {
       const joursRestants = totalDaysInMonth - dernierJour;
-      soldeEstime = Math.round(dernierSolde - joursRestants * budgetJourGlobal);
+      soldeEstime = Math.round(dernierSolde - joursRestants * Math.floor(budgetJourGlobal));
     }
     const sel = document.getElementById('solde-big');
     sel.textContent = debutBase > 0 ? fmt(soldeEstime) : '—';
