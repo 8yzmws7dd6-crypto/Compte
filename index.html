@@ -152,7 +152,7 @@
   </div>
   <div class="budget-card" id="budget-card" style="display:none">
     <div>
-      <div class="budget-card-label">Début mois</div>
+      <div class="budget-card-label">Début mois / jour</div>
       <div class="budget-card-val" id="budget-jour-init">—</div>
       <div class="budget-card-label" style="margin-top:8px">Budget / jour</div>
       <div class="budget-card-val" id="budget-jour-val">—</div>
@@ -459,7 +459,7 @@ function render() {
       const resteADepenser = Math.max(0, marge - depenses);
       const isUnderBudget = budJourCur < budJourInit;
       // Début mois en blanc
-      document.getElementById('budget-jour-init').textContent = fmt(budJourInit) + '/j';
+      document.getElementById('budget-jour-init').textContent = fmt(budJourInit);
       document.getElementById('budget-jour-init').style.color = '#f0f0f0';
       document.getElementById('budget-reste-init').textContent = fmt(marge);
       document.getElementById('budget-reste-init').style.color = '#f0f0f0';
@@ -571,7 +571,7 @@ function render() {
               const depensesSem = soldeDebutSem - dernierSoldeSaisiSem;
               const restantSem = Math.max(0, budSem - depensesSem);
               return '<div style="font-size:13px;font-weight:700;margin-top:4px;color:' + GREEN + '">Restant ' + fmt(restantSem) + '</div>';
-            })() : (isPast && budSem !== null ? (function() {
+            })() : (isPast ? (function() {
               const soldeDebutSem = getSoldeAvant(soldJours, debutBase, start);
               // Chercher le dernier solde saisi dans la semaine
               let soldFinSem = undefined;
@@ -582,8 +582,10 @@ function render() {
                 }
               }
               if (soldFinSem === undefined) return '';
-              const depensesSem = soldeDebutSem - soldFinSem;
-              const restantSem = budSem - depensesSem;
+              const soldeDebutSemCalc = getSoldeAvant(soldJours, debutBase, start);
+              const budSemCalc = budSem !== null ? budSem : Math.floor(Math.max(0, soldeDebutSemCalc - objectif) / Math.max(1, totalDaysInMonth - start + 1) * (end - start + 1));
+              const depensesSem = soldeDebutSemCalc - soldFinSem;
+              const restantSem = budSemCalc - depensesSem;
               const ok = restantSem >= 0;
               return '<div style="font-size:13px;font-weight:700;margin-top:4px;color:' + (ok ? GREEN : RED) + '">' + (ok ? 'Restant ' : '-') + fmt(Math.abs(restantSem)) + '</div>';
             })() : '')) +
