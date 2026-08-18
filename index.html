@@ -502,10 +502,13 @@ function render() {
           const k = yr + '-' + mo + '-' + d;
           if (soldJours[k] !== undefined) { dernierSoldeSem = soldJours[k]; dernierJourSem = d; }
         }
-        // Budget/jour = (solde veille - objectif) / jours restants depuis aujourd'hui
+        // Budget/jour aujourd'hui = (solde veille - objectif) / jours restants depuis aujourd'hui
         const soldeVeille = getSoldeAvant(soldJours, debutBase, todayDate);
         const joursRestComm = totalDaysInMonth - todayDate + 1;
         const budJourCommun = joursRestComm > 0 ? Math.floor(Math.max(0, soldeVeille - objectif) / joursRestComm) : 0;
+        // Budget/jour futurs = (dernier solde saisi - objectif) / jours restants depuis demain
+        const joursRestFutur = totalDaysInMonth - todayDate;
+        const budJourFutur = joursRestFutur > 0 ? Math.floor(Math.max(0, dernierSoldeSem - objectif) / joursRestFutur) : 0;
 
         daysHtml = '<div style="margin-bottom:12px">';
         for (let d = start; d <= end; d++) {
@@ -520,8 +523,10 @@ function render() {
           if (isPastDay) {
             const jr = totalDaysInMonth - d;
             budJour = jr > 0 ? Math.floor(Math.max(0, soldePrevDay - objectif) / jr) : 0;
+          } else if (isToday) {
+            budJour = budJourCommun;
           } else {
-            budJour = budJourCommun; // Figé pour aujourd'hui et jours futurs
+            budJour = budJourFutur;
           }
 
           let restantHtml = '';
