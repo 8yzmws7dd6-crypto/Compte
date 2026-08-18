@@ -52,7 +52,7 @@
     .btn-red-full{background:#1a1a1a;color:#ef4444;border:1px solid #2a1a1a;width:100%;border-radius:12px;padding:12px;font-family:inherit;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-top:4px;}
     .budget-card{background:#0f0f0f;border-radius:18px;padding:15px 18px;border:1px solid #1a1a1a;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
     .budget-card-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#333;margin-bottom:3px;}
-    .budget-card-val{font-size:26px;font-weight:700;}
+    .budget-card-val{font-size:20px;font-weight:700;}
     .budget-card-right{text-align:right;}
     .budget-card-sub{font-size:17px;font-weight:600;color:#444;}
     .week-card{background:#0e0e0e;border:1px solid #171717;border-radius:18px;padding:15px 16px;margin-bottom:10px;}
@@ -392,6 +392,7 @@ function render() {
 
     // Normaliser soldJours (compat ancien format)
     const soldJours = normalizeSoldJours(rec, ranges);
+    const marge = debutBase - objectif;
 
     // Dernier solde global
     const ds = getDernierSolde(soldJours, debutBase);
@@ -399,7 +400,6 @@ function render() {
     const joursRestantsGlobal = dernierJour > 0 ? totalDaysInMonth - dernierJour : (isCurrentMonth ? totalDaysInMonth - todayDate + 1 : totalDaysInMonth);
     const margeGlobale = Math.max(0, dernierSolde - objectif);
     const budgetJourGlobal = joursRestantsGlobal > 0 ? margeGlobale / joursRestantsGlobal : (debutBase > 0 ? marge / totalDaysInMonth : null);
-    const marge = debutBase - objectif;
 
     // budgetsInit — figer au début de chaque semaine passée/en cours
     let budgetsInit = rec.budgetsInit && rec.budgetsInit.length === n ? rec.budgetsInit.slice() : Array(n).fill(null);
