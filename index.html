@@ -502,8 +502,10 @@ function render() {
           const k = yr + '-' + mo + '-' + d;
           if (soldJours[k] !== undefined) { dernierSoldeSem = soldJours[k]; dernierJourSem = d; }
         }
-        const joursRestComm = totalDaysInMonth - dernierJourSem;
-        const budJourCommun = joursRestComm > 0 ? Math.floor(Math.max(0, dernierSoldeSem - objectif) / joursRestComm) : 0;
+        // Budget/jour = (solde veille - objectif) / jours restants depuis aujourd'hui
+        const soldeVeille = getSoldeAvant(soldJours, debutBase, todayDate);
+        const joursRestComm = totalDaysInMonth - todayDate;
+        const budJourCommun = joursRestComm > 0 ? Math.floor(Math.max(0, soldeVeille - objectif) / joursRestComm) : 0;
 
         daysHtml = '<div style="margin-bottom:12px">';
         for (let d = start; d <= end; d++) {
@@ -519,7 +521,7 @@ function render() {
             const jr = totalDaysInMonth - d;
             budJour = jr > 0 ? Math.floor(Math.max(0, soldePrevDay - objectif) / jr) : 0;
           } else {
-            budJour = budJourCommun;
+            budJour = budJourCommun; // Figé pour aujourd'hui et jours futurs
           }
 
           let restantHtml = '';
