@@ -540,12 +540,9 @@ function render() {
             '<div class="week-budget-init">' + (budSem !== null ? fmt(budSem) : '—') + '</div>' +
             '<div class="week-budget-sub">budget sem.</div>' +
             (isCur && budSem !== null ? (function() {
-              // Dernier jour saisi dans la semaine
-              let dernierJourSaisiSem = start - 1;
               let dernierSoldeSaisiSem = getSoldeAvant(soldJours, debutBase, start);
               for (var d = start; d <= end; d++) {
                 if (soldJours[yr + '-' + mo + '-' + d] !== undefined) {
-                  dernierJourSaisiSem = d;
                   dernierSoldeSaisiSem = soldJours[yr + '-' + mo + '-' + d];
                 }
               }
@@ -553,7 +550,15 @@ function render() {
               const depensesSem = soldeDebutSem - dernierSoldeSaisiSem;
               const restantSem = Math.max(0, budSem - depensesSem);
               return '<div style="font-size:13px;font-weight:700;margin-top:4px;color:' + GREEN + '">Restant ' + fmt(restantSem) + '</div>';
-            })() : '') +
+            })() : (isPast && budSem !== null ? (function() {
+              const soldeDebutSem = getSoldeAvant(soldJours, debutBase, start);
+              const soldFinSem = soldJours[yr + '-' + mo + '-' + end];
+              if (soldFinSem === undefined) return '';
+              const depensesSem = soldeDebutSem - soldFinSem;
+              const restantSem = budSem - depensesSem;
+              const ok = restantSem >= 0;
+              return '<div style="font-size:13px;font-weight:700;margin-top:4px;color:' + (ok ? GREEN : RED) + '">' + (ok ? 'Restant ' : '-') + fmt(Math.abs(restantSem)) + '</div>';
+            })() : '')) +
           '</div>' +
         '</div>' +
         daysHtml +
