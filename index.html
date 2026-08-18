@@ -156,7 +156,7 @@
       <div class="budget-card-val" id="budget-jour-val">—</div>
     </div>
     <div class="budget-card-right">
-      <div class="budget-card-label">Marge totale</div>
+      <div class="budget-card-label">Reste à dépenser</div>
       <div class="budget-card-sub" id="budget-reste">—</div>
     </div>
   </div>
@@ -447,7 +447,6 @@ function render() {
       const depenses = debutBase - dernierSolde;
       const resteADepenser = Math.max(0, marge - depenses);
       document.getElementById('budget-reste').textContent = fmt(resteADepenser);
-      document.getElementById('budget-card').querySelector('.budget-card-label:last-of-type').textContent = 'Reste à dépenser';
     } else bc.style.display = 'none';
 
     // Semaines
