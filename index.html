@@ -506,7 +506,7 @@ function render() {
         const soldeVeille = getSoldeAvant(soldJours, debutBase, todayDate);
         const joursRestComm = totalDaysInMonth - todayDate + 1;
         const budJourCommun = joursRestComm > 0 ? Math.floor(Math.max(0, soldeVeille - objectif) / joursRestComm) : 0;
-        // Budget/jour futurs = (dernier solde saisi - objectif) / jours restants depuis demain
+        // Budget jours futurs = (dernier solde saisi - objectif) / jours restants depuis demain
         const joursRestFutur = totalDaysInMonth - todayDate;
         const budJourFutur = joursRestFutur > 0 ? Math.floor(Math.max(0, dernierSoldeSem - objectif) / joursRestFutur) : 0;
 
@@ -526,10 +526,8 @@ function render() {
             const jr = totalDaysInMonth - d + 1;
             budJour = jr > 0 ? Math.floor(Math.max(0, soldeAvantJour - objectif) / jr) : 0;
           } else {
-            // Jours futurs : basé sur dernier solde connu
-            const soldeAvantJour = getSoldeAvant(soldJours, debutBase, d);
-            const jr = totalDaysInMonth - d + 1;
-            budJour = jr > 0 ? Math.floor(Math.max(0, soldeAvantJour - objectif) / jr) : budJourFutur;
+            // Jours futurs : même budget pour tous, basé sur dernier solde connu / jours restants depuis demain
+            budJour = budJourFutur;
           }
 
           let restantHtml = '';
