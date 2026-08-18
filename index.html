@@ -521,16 +521,20 @@ function render() {
 
           let budJour;
           if (isPastDay) {
-            // Jour passé : budget basé sur solde de la veille
             const soldeAvantJour = getSoldeAvant(soldJours, debutBase, d);
             const jr = totalDaysInMonth - d + 1;
             budJour = jr > 0 ? Math.floor(Math.max(0, soldeAvantJour - objectif) / jr) : 0;
           } else if (isToday) {
-            // Aujourd'hui : budget basé sur solde de la veille, figé
             budJour = budJourCommun;
           } else {
-            // Jours futurs : même budget basé sur dernier solde connu
-            budJour = budJourFutur;
+            // Jour futur : budget basé sur solde de la veille de CE jour
+            const soldeAvantJour = getSoldeAvant(soldJours, debutBase, d);
+            const jr = totalDaysInMonth - d + 1;
+            const budJourCeJour = jr > 0 ? Math.floor(Math.max(0, soldeAvantJour - objectif) / jr) : 0;
+            // Si un solde est saisi pour ce jour, afficher son propre budget
+            // Sinon afficher budJourFutur (basé sur dernier solde connu)
+            const soldCeJour = soldJours[yr + '-' + mo + '-' + d];
+            budJour = soldCeJour !== undefined ? budJourCeJour : budJourFutur;
           }
 
           let restantHtml = '';
