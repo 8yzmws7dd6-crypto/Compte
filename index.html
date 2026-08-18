@@ -444,7 +444,10 @@ function render() {
     if (budgetJourGlobal !== null && debutBase > 0) {
       bc.style.display = 'flex';
       document.getElementById('budget-jour-val').textContent = fmt(Math.floor(budgetJourGlobal));
-      document.getElementById('budget-reste').textContent = fmt(marge);
+      const depenses = debutBase - dernierSolde;
+      const resteADepenser = Math.max(0, marge - depenses);
+      document.getElementById('budget-reste').textContent = fmt(resteADepenser);
+      document.getElementById('budget-card').querySelector('.budget-card-label:last-of-type').textContent = 'Reste à dépenser';
     } else bc.style.display = 'none';
 
     // Semaines
@@ -537,15 +540,19 @@ function render() {
           '<div class="week-right">' +
             '<div class="week-budget-init">' + (budSem !== null ? fmt(budSem) : '—') + '</div>' +
             '<div class="week-budget-sub">budget sem.</div>' +
-            (isCur && budgetJourGlobal !== null ? (function() {
-              // Trouver le dernier jour saisi dans cette semaine
-              let dernierJourSaisiSem = todayDate - 1; // par défaut avant aujourd'hui
+            (isCur && budSem !== null ? (function() {
+              // Dernier jour saisi dans la semaine
+              let dernierJourSaisiSem = start - 1;
+              let dernierSoldeSaisiSem = getSoldeAvant(soldJours, debutBase, start);
               for (var d = start; d <= end; d++) {
-                if (soldJours[yr + '-' + mo + '-' + d] !== undefined) dernierJourSaisiSem = d;
+                if (soldJours[yr + '-' + mo + '-' + d] !== undefined) {
+                  dernierJourSaisiSem = d;
+                  dernierSoldeSaisiSem = soldJours[yr + '-' + mo + '-' + d];
+                }
               }
-              // Jours restants = du lendemain du dernier jour saisi jusqu'à fin de semaine
-              const joursRestSem = Math.max(0, end - dernierJourSaisiSem);
-              const restantSem = joursRestSem * Math.floor(budgetJourGlobal);
+              const soldeDebutSem = getSoldeAvant(soldJours, debutBase, start);
+              const depensesSem = soldeDebutSem - dernierSoldeSaisiSem;
+              const restantSem = Math.max(0, budSem - depensesSem);
               return '<div style="font-size:13px;font-weight:700;margin-top:4px;color:' + GREEN + '">Restant ' + fmt(restantSem) + '</div>';
             })() : '') +
           '</div>' +
