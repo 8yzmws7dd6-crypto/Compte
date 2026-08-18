@@ -487,7 +487,7 @@ function render() {
           const soldJourVal = soldJours[soldJourKey];
 
           let budJour;
-          if (isPastDay || isToday) {
+          if (isPastDay) {
             const jr = totalDaysInMonth - d;
             budJour = jr > 0 ? Math.floor(Math.max(0, soldePrevDay - objectif) / jr) : 0;
           } else {
