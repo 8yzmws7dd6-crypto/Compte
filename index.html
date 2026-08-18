@@ -422,9 +422,12 @@ function render() {
     document.getElementById('month-label').textContent = monthName(yr, mo);
     // Estimation fin de mois = dernier solde - (jours restants × budget/jour)
     let soldeEstime = dernierSolde;
-    if (budgetJourGlobal !== null && dernierJour > 0) {
+    if (dernierJour > 0 && debutBase > 0) {
       const joursRestants = totalDaysInMonth - dernierJour;
-      soldeEstime = Math.round(dernierSolde - joursRestants * Math.floor(budgetJourGlobal));
+      const joursEcoules = dernierJour; // jours depuis début du mois
+      const depensesReelles = debutBase - dernierSolde;
+      const moyenneJour = joursEcoules > 0 ? depensesReelles / joursEcoules : 0;
+      soldeEstime = Math.round(dernierSolde - joursRestants * moyenneJour);
     }
     const sel = document.getElementById('solde-big');
     sel.textContent = debutBase > 0 ? fmt(soldeEstime) : '—';
@@ -478,7 +481,11 @@ function render() {
 
     ranges.forEach(function(rng, i) {
       const start = rng.start; const end = rng.end; const nj = end - start + 1;
-      const isCur = cw === i; const isPast = i < cw && cw !== -1; const isFut = i > cw && cw !== -1;
+      const isCur = cw === i;
+      const isMonthPast = yr < TODAY.getFullYear() || (yr === TODAY.getFullYear() && mo < TODAY.getMonth());
+      const isMonthFuture = yr > TODAY.getFullYear() || (yr === TODAY.getFullYear() && mo > TODAY.getMonth());
+      const isPast = isMonthPast ? true : (isMonthFuture ? false : i < cw);
+      const isFut = isMonthFuture ? true : (isMonthPast ? false : i > cw);
       const dotCol = isCur ? GREEN : (isPast ? '#2a5a2a' : '#1e1e1e');
       const nameCol = isCur ? GREEN : (isPast ? '#383838' : '#333');
 
