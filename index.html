@@ -506,8 +506,8 @@ function render() {
         const soldeVeille = getSoldeAvant(soldJours, debutBase, todayDate);
         const joursRestComm = totalDaysInMonth - todayDate + 1;
         const budJourCommun = joursRestComm > 0 ? Math.floor(Math.max(0, soldeVeille - objectif) / joursRestComm) : 0;
-        // Budget jours futurs = (dernier solde saisi - objectif) / jours restants depuis demain
-        const joursRestFutur = totalDaysInMonth - todayDate;
+        // Budget jours futurs = (dernier solde saisi dans la semaine - objectif) / jours restants depuis le lendemain du dernier jour saisi
+        const joursRestFutur = totalDaysInMonth - dernierJourSem;
         const budJourFutur = joursRestFutur > 0 ? Math.floor(Math.max(0, dernierSoldeSem - objectif) / joursRestFutur) : 0;
 
         daysHtml = '<div style="margin-bottom:12px">';
@@ -520,13 +520,16 @@ function render() {
           const soldJourVal = soldJours[soldJourKey];
 
           let budJour;
-          if (isPastDay || isToday) {
-            // Budget figé basé sur solde de la veille
+          if (isPastDay) {
+            // Jour passé : budget basé sur solde de la veille
             const soldeAvantJour = getSoldeAvant(soldJours, debutBase, d);
             const jr = totalDaysInMonth - d + 1;
             budJour = jr > 0 ? Math.floor(Math.max(0, soldeAvantJour - objectif) / jr) : 0;
+          } else if (isToday) {
+            // Aujourd'hui : budget basé sur solde de la veille, figé
+            budJour = budJourCommun;
           } else {
-            // Jours futurs : même budget pour tous, basé sur dernier solde connu / jours restants depuis demain
+            // Jours futurs : même budget basé sur dernier solde connu
             budJour = budJourFutur;
           }
 
