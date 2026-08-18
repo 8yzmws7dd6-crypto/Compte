@@ -153,16 +153,14 @@
   <div class="budget-card" id="budget-card" style="display:none">
     <div>
       <div class="budget-card-label">Début mois</div>
-      <div class="budget-card-val" id="budget-jour-init" style="font-size:16px;color:#444">—</div>
-      <div style="height:8px"></div>
-      <div class="budget-card-label">Budget / jour</div>
+      <div class="budget-card-val" id="budget-jour-init" style="color:#444">—</div>
+      <div class="budget-card-label" style="margin-top:8px">Budget / jour</div>
       <div class="budget-card-val" id="budget-jour-val">—</div>
     </div>
     <div class="budget-card-right">
       <div class="budget-card-label">Début mois</div>
-      <div class="budget-card-sub" id="budget-reste-init" style="font-size:16px;color:#444">—</div>
-      <div style="height:8px"></div>
-      <div class="budget-card-label">Reste à dépenser</div>
+      <div class="budget-card-sub" id="budget-reste-init" style="color:#444">—</div>
+      <div class="budget-card-label" style="margin-top:8px">Reste à dépenser</div>
       <div class="budget-card-sub" id="budget-reste">—</div>
     </div>
   </div>
@@ -424,7 +422,14 @@ function render() {
     document.getElementById('month-label').textContent = monthName(yr, mo);
     const accent = debutBase > 0 ? (dernierSolde >= objectif ? GREEN : ORANGE) : '#3a3a3a';
     const sel = document.getElementById('solde-big');
-    sel.textContent = debutBase > 0 ? fmt(dernierSolde) : '—'; sel.style.color = accent;
+    // Estimation fin de mois = dernier solde - (jours restants × budget/jour)
+    let soldeEstime = dernierSolde;
+    if (budgetJourGlobal !== null && dernierJour > 0) {
+      const joursRestants = totalDaysInMonth - dernierJour;
+      soldeEstime = Math.round(dernierSolde - joursRestants * budgetJourGlobal);
+    }
+    sel.textContent = debutBase > 0 ? fmt(soldeEstime) : '—';
+    sel.style.color = soldeEstime >= objectif ? GREEN : RED;
     const stEl = document.getElementById('solde-status');
     if (debutBase > 0 && objectif > 0) {
       if (dernierSolde > objectif) { stEl.textContent = '✓ Objectif atteint — ' + fmt(objectif); stEl.style.color = GREEN; }
@@ -449,15 +454,20 @@ function render() {
     const bc = document.getElementById('budget-card');
     if (budgetJourGlobal !== null && debutBase > 0) {
       bc.style.display = 'flex';
-      // Valeurs initiales du mois (fixes)
       const budJourInit = Math.floor(marge / totalDaysInMonth);
-      document.getElementById('budget-jour-init').textContent = fmt(budJourInit) + '/j';
-      document.getElementById('budget-reste-init').textContent = fmt(marge);
-      // Valeurs actuelles
-      document.getElementById('budget-jour-val').textContent = fmt(Math.floor(budgetJourGlobal));
+      const budJourCur = Math.floor(budgetJourGlobal);
       const depenses = debutBase - dernierSolde;
       const resteADepenser = Math.max(0, marge - depenses);
+      // Début mois en blanc
+      document.getElementById('budget-jour-init').textContent = fmt(budJourInit) + '/j';
+      document.getElementById('budget-jour-init').style.color = '#f0f0f0';
+      document.getElementById('budget-reste-init').textContent = fmt(marge);
+      document.getElementById('budget-reste-init').style.color = '#f0f0f0';
+      // Actuel : vert si supérieur ou égal, rouge si inférieur
+      document.getElementById('budget-jour-val').textContent = fmt(budJourCur);
+      document.getElementById('budget-jour-val').style.color = budJourCur >= budJourInit ? GREEN : RED;
       document.getElementById('budget-reste').textContent = fmt(resteADepenser);
+      document.getElementById('budget-reste').style.color = resteADepenser >= marge ? GREEN : RED;
     } else bc.style.display = 'none';
 
     // Semaines
@@ -563,7 +573,14 @@ function render() {
               return '<div style="font-size:13px;font-weight:700;margin-top:4px;color:' + GREEN + '">Restant ' + fmt(restantSem) + '</div>';
             })() : (isPast && budSem !== null ? (function() {
               const soldeDebutSem = getSoldeAvant(soldJours, debutBase, start);
-              const soldFinSem = soldJours[yr + '-' + mo + '-' + end];
+              // Chercher le dernier solde saisi dans la semaine
+              let soldFinSem = undefined;
+              for (var dd = end; dd >= start; dd--) {
+                if (soldJours[yr + '-' + mo + '-' + dd] !== undefined) {
+                  soldFinSem = soldJours[yr + '-' + mo + '-' + dd];
+                  break;
+                }
+              }
               if (soldFinSem === undefined) return '';
               const depensesSem = soldeDebutSem - soldFinSem;
               const restantSem = budSem - depensesSem;
