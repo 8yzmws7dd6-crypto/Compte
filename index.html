@@ -155,7 +155,7 @@
       <div class="budget-card-label">Début mois / jour</div>
       <div class="budget-card-val" id="budget-jour-init">—</div>
       <div class="budget-card-label" style="margin-top:8px">Budget moyen / jour</div>
-      <div class="budget-card-val" id="budget-jour-moyen" style="color:#facc15">—</div>
+      <div class="budget-card-val" id="budget-jour-moyen">—</div>
       <div class="budget-card-label" style="margin-top:8px">Budget / jour</div>
       <div class="budget-card-val" id="budget-jour-val">—</div>
     </div>
@@ -163,7 +163,7 @@
       <div class="budget-card-label">Début mois</div>
       <div class="budget-card-val" id="budget-reste-init">—</div>
       <div class="budget-card-label" style="margin-top:8px">Dépensé</div>
-      <div class="budget-card-val" id="budget-depense" style="color:#f0f0f0">—</div>
+      <div class="budget-card-val" id="budget-depense">—</div>
       <div class="budget-card-label" style="margin-top:8px">Reste à dépenser</div>
       <div class="budget-card-val" id="budget-reste">—</div>
     </div>
@@ -467,19 +467,21 @@ function render() {
       const isUnderBudget = budJourCur < budJourInit;
       // Début mois en blanc
       document.getElementById('budget-jour-init').textContent = fmt(budJourInit);
-      document.getElementById('budget-jour-init').style.color = '#f0f0f0';
+      document.getElementById('budget-jour-init').style.color = '#fde047';
       document.getElementById('budget-reste-init').textContent = fmt(marge);
-      document.getElementById('budget-reste-init').style.color = '#f0f0f0';
-      // Budget moyen / jour = dépenses réelles / jours écoulés
+      document.getElementById('budget-reste-init').style.color = '#fde047';
       const moyenJour = dernierJour > 0 ? Math.floor(depenses / dernierJour) : 0;
       document.getElementById('budget-jour-moyen').textContent = fmt(moyenJour);
-      // Dépensé
+      document.getElementById('budget-jour-moyen').style.color = ORANGE;
       document.getElementById('budget-depense').textContent = fmt(depenses);
+      document.getElementById('budget-depense').style.color = ORANGE;
+      const couleurLigne3 = isUnderBudget ? RED : GREEN;
+      document.getElementById('budget-jour-val').style.color = couleurLigne3;
+      document.getElementById('budget-reste').style.color = couleurLigne3;
       // Actuel : vert si budget ok, tout rouge si budget/jour inférieur
       document.getElementById('budget-jour-val').textContent = fmt(budJourCur);
       document.getElementById('budget-jour-val').style.color = isUnderBudget ? RED : GREEN;
       document.getElementById('budget-reste').textContent = fmt(resteADepenser);
-      document.getElementById('budget-reste').style.color = isUnderBudget ? RED : '#f0f0f0';
     } else bc.style.display = 'none';
 
     // Semaines
